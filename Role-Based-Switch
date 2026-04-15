@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEAD Phase 0 | Staging Environment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the dispatch radar animation */
+        .radar-ping {
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+            75%, 100% { transform: scale(2); opacity: 0; }
+        }
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, #334155 1px, transparent 1px), linear-gradient(to bottom, #334155 1px, transparent 1px);
+        }
+        /* Hide scrollbar for clean app feel */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen font-sans flex flex-col items-center py-10">
+
+    <div class="text-center mb-8 max-w-2xl px-4">
+        <h1 class="text-3xl font-bold text-white tracking-wide">LEAD <span class="text-emerald-500">Phase 0</span> Staging Environment</h1>
+        <p class="text-slate-400 mt-2 text-sm">Internal Architecture & Prototype Logic | Business Finland MVS</p>
+        <p class="text-slate-500 text-xs mt-4">ROLE-BASED ACCESS CONTROL (RBAC) SIMULATOR</p>
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-3 mb-8 px-4">
+        <button onclick="switchView('home')" id="btn-home" class="role-btn px-4 py-2 rounded-md bg-emerald-600 text-white font-medium transition-all shadow-lg shadow-emerald-900/50">Platform Hub</button>
+        <button onclick="switchView('consumer')" id="btn-consumer" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all">Consumer</button>
+        <button onclick="switchView('chef')" id="btn-chef" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all">Chef</button>
+        <button onclick="switchView('courier')" id="btn-courier" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all">Courier</button>
+        <button onclick="switchView('dispatch')" id="btn-dispatch" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all">Live Dispatch</button>
+    </div>
+
+    <div class="w-[380px] h-[750px] bg-slate-900 rounded-[2.5rem] shadow-2xl border-[8px] border-slate-800 overflow-hidden relative flex flex-col">
+        
+        <div class="h-6 w-full flex justify-between items-center px-6 mt-2 opacity-50 text-[10px] font-bold">
+            <span>9:41</span>
+            <div class="flex gap-1">
+                <span>5G</span>
+                <span>100%</span>
+            </div>
+        </div>
+
+        <div id="view-home" class="app-view flex-1 p-6 flex flex-col">
+            <h2 class="text-xl font-bold text-white mb-6">System Status</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400">Active Indents</p>
+                    <p class="text-2xl font-bold text-emerald-400 mt-1">14</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400">Online Chefs</p>
+                    <p class="text-2xl font-bold text-white mt-1">6</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400">Active Couriers</p>
+                    <p class="text-2xl font-bold text-white mt-1">8</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400">Database Ping</p>
+                    <p class="text-2xl font-bold text-emerald-400 mt-1">12ms</p>
+                </div>
+            </div>
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex-1">
+                <h3 class="text-sm font-bold text-slate-300 mb-3">Live Webhook Log</h3>
+                <div class="space-y-2 text-xs font-mono text-slate-400">
+                    <p>> [API] Indent #1042 Placed</p>
+                    <p>> [DB] State_Update: Awaiting_Chef</p>
+                    <p>> [API] Chef_ID_44 Accepted</p>
+                    <p>> [Geo] Pinging radius (3km)...</p>
+                    <p class="text-emerald-500">> [Match] Courier_ID_09 Assigned</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-consumer" class="app-view hidden flex-1 p-4 flex flex-col">
+            <h2 class="text-2xl font-bold text-white mb-4 mt-2">Discovery</h2>
+            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4">
+                <span class="px-3 py-1 bg-emerald-600 text-white rounded-full text-xs whitespace-nowrap">All</span>
+                <span class="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs whitespace-nowrap">Under 30 Mins</span>
+                <span class="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs whitespace-nowrap">High Protein</span>
+            </div>
+            <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-10">
+                <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-lg border border-slate-700">
+                    <div class="h-32 bg-slate-700 w-full flex items-center justify-center text-slate-500">[Image Placeholder]</div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-white">Dom Bakery Classic</h3>
+                            <span class="font-bold text-emerald-400">€12</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3">Chef: Dom Bakery • ★ 4.9</p>
+                        <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white">Add to Indent</button>
+                    </div>
+                </div>
+                <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-lg border border-slate-700">
+                    <div class="h-32 bg-slate-700 w-full flex items-center justify-center text-slate-500">[Image Placeholder]</div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-white">Nordic Protein Bowl</h3>
+                            <span class="font-bold text-emerald-400">€18</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3">Chef: Juuso • ★ 4.8</p>
+                        <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white">Add to Indent</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-chef" class="app-view hidden flex-1 p-4 flex flex-col bg-slate-900">
+            <h2 class="text-2xl font-bold text-white mb-2 mt-2">Active Pipeline</h2>
+            <p class="text-xs text-emerald-500 mb-6 font-mono">Status: ONLINE & ACCEPTING</p>
+            
+            <div class="space-y-4">
+                <div class="bg-slate-800 rounded-xl p-4 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)] relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1042</span>
+                        <span class="text-xs font-bold text-emerald-400">Just Now</span>
+                    </div>
+                    <h3 class="font-bold text-white mb-1">2x Dom Bakery Classic</h3>
+                    <p class="text-xs text-slate-400 mb-4">Value: €24.00</p>
+                    <button class="w-full bg-emerald-600 py-3 rounded-lg text-sm font-bold text-white shadow-lg shadow-emerald-900/50">Accept & Prep</button>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 relative overflow-hidden opacity-60">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1041</span>
+                        <span class="text-xs font-bold text-amber-400">Prepping</span>
+                    </div>
+                    <h3 class="font-bold text-white mb-1">1x Keto Power Steak</h3>
+                    <button class="w-full bg-slate-700 py-2 rounded-lg text-sm font-bold text-white mt-2">Mark Ready for Courier</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-courier" class="app-view hidden flex-1 p-4 flex flex-col relative overflow-hidden">
+            <div class="absolute inset-0 bg-grid opacity-20"></div>
+            
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-center mt-2 mb-8">
+                    <h2 class="text-2xl font-bold text-white">Radar</h2>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-xs font-bold text-emerald-500">Online</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex items-center justify-center relative">
+                    <div class="absolute w-32 h-32 bg-emerald-500/10 rounded-full flex items-center justify-center">
+                        <div class="w-24 h-24 bg-emerald-500/20 rounded-full radar-ping"></div>
+                        <div class="w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] z-10"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-2xl p-5 border border-emerald-500/50 shadow-2xl mt-auto translate-y-0 transition-transform">
+                    <p class="text-xs font-bold text-emerald-400 mb-1">NEW BOUNTY DETECTED</p>
+                    <h3 class="text-lg font-bold text-white mb-1">Dom Bakery → Länsimäki</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <p class="text-sm text-slate-400">2.4 km total route</p>
+                        <p class="text-xl font-bold text-white">€8.50</p>
+                    </div>
+                    <button class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-sm font-bold text-white shadow-lg">Accept Dispatch</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-dispatch" class="app-view hidden flex-1 flex flex-col relative bg-slate-900 overflow-hidden">
+            <div class="flex-1 bg-grid relative relative">
+                <div class="absolute top-[30%] left-[20%] w-[60%] h-[40%] border-l-4 border-b-4 border-dashed border-emerald-500/40 rounded-bl-3xl"></div>
+                
+                <div class="absolute top-[28%] left-[18%] flex flex-col items-center">
+                    <div class="w-4 h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)] z-10 border-2 border-slate-900"></div>
+                    <span class="text-[10px] font-bold text-white bg-slate-800 px-1 rounded mt-1">Pickup</span>
+                </div>
+
+                <div class="absolute top-[68%] left-[78%] flex flex-col items-center">
+                    <div class="w-4 h-4 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] z-10 border-2 border-slate-900"></div>
+                    <span class="text-[10px] font-bold text-emerald-400 bg-slate-800 px-1 rounded mt-1">Dropoff</span>
+                </div>
+
+                <div class="absolute top-[50%] left-[20%] flex items-center justify-center animate-pulse">
+                    <div class="w-6 h-6 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.8)] border-2 border-white flex items-center justify-center">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 p-5 border-t border-slate-700 rounded-t-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.3)] z-20">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-white">Courier in Transit</h3>
+                    <span class="text-emerald-400 font-bold">ETA: 12 mins</span>
+                </div>
+                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div class="bg-emerald-500 w-[45%] h-full"></div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <div class="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center text-xs">🚗</div>
+                    <div>
+                        <p class="text-sm font-bold text-white">Courier ID: 09</p>
+                        <p class="text-xs text-slate-400">On route to dropoff</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.app-view').forEach(view => {
+                view.classList.add('hidden');
+            });
+            
+            // Show selected view
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+
+            // Reset all buttons to default dark slate
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-900/50');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+
+            // Highlight active button
+            const activeBtn = document.getElementById('btn-' + viewName);
+            activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+            activeBtn.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-900/50');
+        }
+    </script>
+</body>
+</html>

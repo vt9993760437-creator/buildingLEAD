@@ -81,7 +81,26 @@
         </div>
 
         <div id="view-consumer" class="app-view hidden flex-1 p-4 flex flex-col">
-            <h2 class="text-2xl font-bold text-white mb-3 mt-2">Discovery</h2>
+            <div class="flex justify-between items-center mt-2 mb-3">
+                <h2 class="text-2xl font-bold text-white">Discovery</h2>
+                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs border border-slate-600">VT</div>
+            </div>
+
+            <div class="flex items-center gap-2 mb-4">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" class="block w-full pl-10 pr-3 py-2.5 border border-slate-700 rounded-full text-sm bg-slate-800 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors shadow-inner" placeholder="Search dishes, chefs...">
+                </div>
+                <button class="flex-shrink-0 bg-slate-800 border border-slate-700 p-2.5 rounded-full text-emerald-500 hover:bg-slate-700 hover:text-emerald-400 transition-all shadow-md active:scale-95">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                </button>
+            </div>
             
             <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-2">
                 <span class="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer shadow-md shadow-emerald-900/50">All</span>

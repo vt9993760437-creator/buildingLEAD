@@ -81,30 +81,43 @@
         </div>
 
         <div id="view-consumer" class="app-view hidden flex-1 p-4 flex flex-col">
-            <h2 class="text-2xl font-bold text-white mb-4 mt-2">Discovery</h2>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4">
-                <span class="px-3 py-1 bg-emerald-600 text-white rounded-full text-xs whitespace-nowrap">All</span>
-                <span class="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs whitespace-nowrap">Under 30 Mins</span>
-                <span class="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs whitespace-nowrap">High Protein</span>
+            <h2 class="text-2xl font-bold text-white mb-3 mt-2">Discovery</h2>
+            
+            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-2">
+                <span class="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer shadow-md shadow-emerald-900/50">All</span>
+                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Near & Fast ⚡</span>
+                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Under €10 💸</span>
+                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Great Offers 🏷️</span>
+                <span class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer shadow-lg shadow-orange-900/50">LEAD Member ★</span>
+                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Previously Ordered 🔄</span>
+                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Schedule Later 🗓️</span>
+                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">New to You 🆕</span>
             </div>
+
             <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-10">
-                <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-lg border border-slate-700">
+                <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-lg border border-slate-700 relative">
+                    <div class="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-bold text-emerald-400 z-10 border border-emerald-500/30">Under €10</div>
                     <div class="h-32 bg-slate-700 w-full flex items-center justify-center text-slate-500">[Image Placeholder]</div>
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-1">
                             <h3 class="font-bold text-white">Dom Bakery Classic</h3>
-                            <span class="font-bold text-emerald-400">€12</span>
+                            <span class="font-bold text-emerald-400">€9</span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-3">Chef: Dom Bakery • ★ 4.9</p>
+                        <p class="text-xs text-slate-400 mb-3">Chef: Dom Bakery • ★ 4.9 • 1.2km ⚡</p>
                         <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white">Add to Indent</button>
                     </div>
                 </div>
-                <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-lg border border-slate-700">
+
+                <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-lg border border-slate-700 relative">
+                    <div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold z-10 shadow-lg">LEAD Member Special</div>
                     <div class="h-32 bg-slate-700 w-full flex items-center justify-center text-slate-500">[Image Placeholder]</div>
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-1">
                             <h3 class="font-bold text-white">Nordic Protein Bowl</h3>
-                            <span class="font-bold text-emerald-400">€18</span>
+                            <div class="text-right">
+                                <span class="text-xs text-slate-400 line-through mr-1">€18</span>
+                                <span class="font-bold text-amber-400">€14</span>
+                            </div>
                         </div>
                         <p class="text-xs text-slate-400 mb-3">Chef: Juuso • ★ 4.8</p>
                         <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white">Add to Indent</button>
@@ -215,21 +228,17 @@
 
     <script>
         function switchView(viewName) {
-            // Hide all views
             document.querySelectorAll('.app-view').forEach(view => {
                 view.classList.add('hidden');
             });
             
-            // Show selected view
             document.getElementById('view-' + viewName).classList.remove('hidden');
 
-            // Reset all buttons to default dark slate
             document.querySelectorAll('.role-btn').forEach(btn => {
                 btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-900/50');
                 btn.classList.add('bg-slate-800', 'text-slate-300');
             });
 
-            // Highlight active button
             const activeBtn = document.getElementById('btn-' + viewName);
             activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
             activeBtn.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-900/50');

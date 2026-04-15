@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEAD // Phase 0 — Staging Environment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          mono: ['JetBrains Mono', 'monospace'],
+          display: ['Syne', 'sans-serif'],
+        },
+        colors: {
+          bg: '#080b12',
+          panel: '#0d1220',
+          border: '#1a2540',
+          accent: '#00e5ff',
+          green: '#00ff88',
+          amber: '#ffb347',
+          red: '#ff4d6d',
+          muted: '#3d5278',
+          text: '#c8d8f0',
+          dim: '#5c7aaa',
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  :root {
+    --accent: #00e5ff;
+    --green: #00ff88;
+    --amber: #ffb347;
+    --red: #ff4d6d;
+    --panel: #0d1220;
+    --border: #1a2540;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background-color: #080b12;
+    color: #c8d8f0;
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Grid background */
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Glow effects */
+  .glow-accent { text-shadow: 0 0 20px rgba(0,229,255,0.8), 0 0 40px rgba(0,229,255,0.4); }
+  .glow-green  { text-shadow: 0 0 20px rgba(0,255,136,0.8), 0 0 40px rgba(0,255,136,0.4); }
+  .glow-amber  { text-shadow: 0 0 20px rgba(255,179,71,0.8); }
+  .box-glow-accent { box-shadow: 0 0 0 1px rgba(0,229,255,0.3), 0 0 30px rgba(0,229,255,0.08), inset 0 0 30px rgba(0,229,255,0.03); }
+  .box-glow-green  { box-shadow: 0 0 0 1px rgba(0,255,136,0.3), 0 0 30px rgba(0,255,136,0.08); }
+
+  /* Panel base */
+  .panel {
+    background: #0d1220;
+    border: 1px solid #1a2540;
+    border-radius: 8px;
+    position: relative;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.4), transparent);
+    border-radius: 8px 8px 0 0;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Header gradient */
+  .header-grad {
+    background: linear-gradient(135deg, #080b12 0%, #0a1428 50%, #080b12 100%);
+    border-bottom: 1px solid #1a2540;
+  }
+
+  /* Typing cursor blink */
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .cursor::after { content:'_'; animation: blink 1s infinite; color: var(--accent); }
+
+  /* Filter pill */
+  .filter-pill {
+    background: #0d1220;
+    border: 1px solid #1a2540;
+    color: #5c7aaa;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .filter-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-pill.active {
+    background: rgba(0,229,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(0,229,255,0.2);
+  }
+
+  /* Food card */
+  .food-card {
+    background: #0d1220;
+    border: 1px solid #1a2540;
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .food-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,229,255,0.03), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .food-card:hover { border-color: rgba(0,229,255,0.4); transform: translateY(-2px); }
+  .food-card:hover::after { opacity: 1; }
+  .food-card.hidden-card {
+    opacity: 0.15;
+    pointer-events: none;
+    filter: grayscale(1);
+  }
+  .food-card.matched-card { border-color: rgba(0,229,255,0.5); }
+
+  /* Tag badge */
+  .tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; }
+  .tag-protein { background: rgba(0,255,136,0.12); color: #00ff88; border: 1px solid rgba(0,255,136,0.3); }
+  .tag-time    { background: rgba(0,229,255,0.12); color: #00e5ff; border: 1px solid rgba(0,229,255,0.3); }
+  .tag-price   { background: rgba(255,179,71,0.12); color: #ffb347; border: 1px solid rgba(255,179,71,0.3); }
+  .tag-vegan   { background: rgba(126,211,33,0.12); color: #7ed321; border: 1px solid rgba(126,211,33,0.3); }
+  .tag-local   { background: rgba(255,77,109,0.12); color: #ff4d6d; border: 1px solid rgba(255,77,109,0.3); }
+
+  /* State machine nodes */
+  .sm-node {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 2px solid #1a2540;
+    background: #0d1220;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.4s ease;
+    flex-shrink: 0;
+  }
+  .sm-node .node-icon { font-size: 28px; margin-bottom: 6px; }
+  .sm-node .node-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #3d5278; transition: color 0.4s; }
+  .sm-node.active-node {
+    border-color: var(--green);
+    box-shadow: 0 0 0 4px rgba(0,255,136,0.1), 0 0 40px rgba(0,255,136,0.3);
+  }
+  .sm-node.active-node .node-label { color: var(--green); }
+  .sm-node.completed-node {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(0,229,255,0.1), 0 0 30px rgba(0,229,255,0.2);
+  }
+  .sm-node.completed-node .node-label { color: var(--accent); }
+
+  /* Connector lines */
+  .sm-connector {
+    height: 2px;
+    flex: 1;
+    background: #1a2540;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s;
+  }
+  .sm-connector.lit { background: linear-gradient(90deg, var(--accent), var(--green)); }
+  .sm-connector::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    transform: translateX(-200%);
+    transition: transform 0s;
+  }
+  .sm-connector.pulsing::after {
+    animation: pulse-line 1.2s ease forwards;
+  }
+  @keyframes pulse-line {
+    0% { transform: translateX(-200%); }
+    100% { transform: translateX(200%); }
+  }
+
+  /* Status log */
+  .log-line { animation: fade-in-up 0.4s ease both; }
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Simulate button */
+  .btn-sim {
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.4);
+    color: #00ff88;
+    padding: 10px 28px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .btn-sim:hover {
+    background: rgba(0,255,136,0.15);
+    box-shadow: 0 0 20px rgba(0,255,136,0.3);
+  }
+  .btn-sim:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Code block */
+  .code-block {
+    background: #060810;
+    border: 1px solid #1a2540;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .code-key     { color: #7dd3fc; }
+  .code-type    { color: #c084fc; }
+  .code-string  { color: #86efac; }
+  .code-bracket { color: #5c7aaa; }
+  .code-comment { color: #3d5278; font-style: italic; }
+  .code-coll    { color: #00e5ff; font-weight: 600; }
+  .code-field   { color: #fde68a; }
+
+  /* Schema table header */
+  .schema-header {
+    background: rgba(0,229,255,0.05);
+    border-bottom: 1px solid #1a2540;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 6px 6px 0 0;
+  }
+
+  /* Dot indicators */
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-green  { background: #00ff88; box-shadow: 0 0 6px rgba(0,255,136,0.8); }
+  .dot-accent { background: #00e5ff; box-shadow: 0 0 6px rgba(0,229,255,0.8); }
+  .dot-amber  { background: #ffb347; box-shadow: 0 0 6px rgba(255,179,71,0.8); }
+  .dot-red    { background: #ff4d6d; box-shadow: 0 0 6px rgba(255,77,109,0.8); }
+  .dot-dim    { background: #3d5278; }
+
+  /* Metric card */
+  .metric-card {
+    background: rgba(0,229,255,0.04);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 6px;
+    padding: 14px 18px;
+  }
+
+  /* Progress bar */
+  .prog-bar {
+    height: 4px;
+    background: #1a2540;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    transition: width 1s ease;
+  }
+
+  /* Fade in animation on load */
+  .fade-in { animation: fadeIn 0.6s ease both; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+  .delay-5 { animation-delay: 0.5s; }
+
+  /* Active step highlight */
+  .step-card { border-left: 3px solid #1a2540; transition: all 0.4s; padding: 10px 14px; background: transparent; border-radius: 0 6px 6px 0; }
+  .step-card.active-step { border-left-color: var(--green); background: rgba(0,255,136,0.05); }
+  .step-card.done-step   { border-left-color: var(--accent); background: rgba(0,229,255,0.04); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #080b12; }
+  ::-webkit-scrollbar-thumb { background: #1a2540; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3d5278; }
+
+  /* Noise overlay for header */
+  .noise-overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .sm-node { width: 80px; height: 80px; }
+    .sm-node .node-icon { font-size: 20px; }
+    .sm-node .node-label { font-size: 8px; }
+  }
+</style>
+</head>
+<body class="grid-bg min-h-screen">
+
+<!-- ============================================================ -->
+<!-- SECTION 1: HEADER & EXECUTIVE SUMMARY                        -->
+<!-- ============================================================ -->
+<header class="header-grad relative overflow-hidden">
+  <div class="noise-overlay"></div>
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <!-- Top bar -->
+    <div class="flex items-center justify-between mb-8 fade-in">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded border border-accent/40 flex items-center justify-center">
+          <span class="text-accent text-xs font-bold">L</span>
+        </div>
+        <span class="section-label">LEAD // Internal Systems</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 text-xs text-dim">
+          <span class="dot dot-green"></span>
+          <span class="font-mono">ENV: STAGING</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-dim">
+          <span class="dot dot-amber"></span>
+          <span class="font-mono">BUILD: v0.1.0-alpha</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 text-xs text-dim">
+          <span class="dot dot-accent"></span>
+          <span class="font-mono" id="liveClock"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main title -->
+    <div class="fade-in delay-1">
+      <div class="section-label mb-3">Phase 0 Staging Environment</div>
+      <h1 class="font-display text-4xl sm:text-6xl font-800 tracking-tight leading-none mb-2 cursor">
+        <span class="glow-accent text-accent">LEAD</span>
+        <span class="text-text"> Architecture</span>
+      </h1>
+      <h2 class="font-display text-xl sm:text-2xl text-dim font-400 mb-8">
+        Internal Engineering Hub &amp; Prototype Logic Suite
+      </h2>
+    </div>
+
+    <!-- Executive summary -->
+    <div class="fade-in delay-2 max-w-4xl">
+      <div class="panel p-5">
+        <div class="flex items-start gap-3">
+          <div class="mt-1 flex-shrink-0">
+            <span class="dot dot-accent"></span>
+          </div>
+          <div>
+            <div class="section-label mb-2">Executive Summary — MVS Scope</div>
+            <p class="text-sm text-text/80 leading-relaxed">
+              This environment houses the <strong class="text-accent">Minimum Viable System (MVS)</strong> logic
+              for LEAD's Phase 0 prototype, structured for Business Finland grant evaluation. It demonstrates
+              the core interaction loops between consumers, independent chefs, courier logistics, and the
+              platform orchestration layer. All modules below represent live prototype logic — not mockups —
+              and are designed to validate the <strong class="text-green">four-way handshake model</strong>,
+              result-oriented discovery UX, and geo-radius logistics routing as fundable technical differentiators.
+            </p>
+            <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="metric-card">
+                <div class="text-xs text-dim mb-1">System Actors</div>
+                <div class="text-2xl font-display font-700 text-accent glow-accent">4</div>
+              </div>
+              <div class="metric-card">
+                <div class="text-xs text-dim mb-1">Core Collections</div>
+                <div class="text-2xl font-display font-700 text-green glow-green">3</div>
+              </div>
+              <div class="metric-card">
+                <div class="text-xs text-dim mb-1">Handshake States</div>
+                <div class="text-2xl font-display font-700 text-amber glow-amber">4</div>
+              </div>
+              <div class="metric-card">
+                <div class="text-xs text-dim mb-1">MVS Phase</div>
+                <div class="text-2xl font-display font-700 text-text">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-12 space-y-16">
+
+<!-- ============================================================ -->
+<!-- MODULE 1: RESULT-ORIENTED DISCOVERY                          -->
+<!-- ============================================================ -->
+<section class="fade-in delay-3">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-7 h-7 rounded border border-accent/40 flex items-center justify-center text-accent text-xs font-bold">01</div>
+    <div>
+      <div class="section-label">Interactive Module</div>
+      <h3 class="font-display text-xl font-700 text-text">Result-Oriented Portrayal &amp; Interactive Discovery</h3>
+    </div>
+  </div>
+
+  <div class="panel p-6">
+    <!-- Module description -->
+    <div class="mb-6 p-3 bg-accent/5 border border-accent/15 rounded-md">
+      <p class="text-xs text-dim leading-relaxed">
+        <span class="text-accent">PROTOTYPE LOGIC:</span> Consumer discovery engine filters food listings
+        by <em>outcome attributes</em> rather than cuisine categories. Each active filter reduces the
+        result set in real-time using multi-tag intersection logic. Results surface chef proximity,
+        macro-match score, and delivery ETA.
+      </p>
+    </div>
+
+    <!-- Search bar mock -->
+    <div class="flex items-center gap-3 mb-5 p-3 bg-bg rounded-md border border-border">
+      <span class="text-dim text-sm">⌕</span>
+      <span class="text-dim text-sm font-mono">Search by outcome, not cuisine...</span>
+      <div class="ml-auto flex items-center gap-2">
+        <span class="tag tag-protein text-xs">AI-match: 91%</span>
+      </div>
+    </div>
+
+    <!-- Filter pills -->
+    <div class="mb-6">
+      <div class="section-label mb-3">Active Filters</div>
+      <div class="flex flex-wrap gap-2" id="filterPills">
+        <button class="filter-pill" data-filter="high-protein">⚡ High Protein</button>
+        <button class="filter-pill" data-filter="under-30">⏱ Under 30 Mins</button>
+        <button class="filter-pill" data-filter="vegan">🌱 Vegan</button>
+        <button class="filter-pill" data-filter="under-12">€ Under €12</button>
+        <button class="filter-pill" data-filter="local-chef">📍 Local Chef</button>
+        <button class="filter-pill" data-filter="low-carb">🔥 Low Carb</button>
+      </div>
+    </div>
+
+    <!-- Results counter -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-xs text-dim">
+        Showing <span id="resultCount" class="text-accent font-bold">8</span> / 8 results
+      </div>
+      <div class="text-xs text-dim">Sort: Match Score ↓</div>
+    </div>
+
+    <!-- Food cards grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="foodGrid">
+
+      <div class="food-card" data-tags="high-protein,under-30,local-chef">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🥗</div>
+          <div class="tag tag-protein">38g protein</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Greek Power Bowl</div>
+        <div class="text-xs text-dim mb-3">Chef Markku · 0.8km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">22 min</span>
+          <span class="tag tag-price">€11.50</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:94%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 94%</div>
+      </div>
+
+      <div class="food-card" data-tags="vegan,under-30,under-12,local-chef">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🍛</div>
+          <div class="tag tag-vegan">Vegan</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Lentil Masala Wrap</div>
+        <div class="text-xs text-dim mb-3">Chef Aino · 1.2km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">18 min</span>
+          <span class="tag tag-price">€9.00</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:88%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 88%</div>
+      </div>
+
+      <div class="food-card" data-tags="high-protein,low-carb,under-30">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🥩</div>
+          <div class="tag tag-protein">45g protein</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Grilled Salmon Plate</div>
+        <div class="text-xs text-dim mb-3">Chef Lauri · 2.1km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">25 min</span>
+          <span class="tag tag-price">€14.90</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:85%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 85%</div>
+      </div>
+
+      <div class="food-card" data-tags="vegan,under-12,low-carb">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🥙</div>
+          <div class="tag tag-vegan">Vegan</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Falafel &amp; Tahini Box</div>
+        <div class="text-xs text-dim mb-3">Chef Priya · 0.5km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">32 min</span>
+          <span class="tag tag-price">€8.50</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:79%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 79%</div>
+      </div>
+
+      <div class="food-card" data-tags="high-protein,under-12,local-chef">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🍳</div>
+          <div class="tag tag-protein">32g protein</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Egg White Scramble</div>
+        <div class="text-xs text-dim mb-3">Chef Outi · 0.3km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">15 min</span>
+          <span class="tag tag-price">€7.80</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:91%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 91%</div>
+      </div>
+
+      <div class="food-card" data-tags="under-30,under-12,vegan">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🌮</div>
+          <div class="tag tag-vegan">Vegan</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Black Bean Tacos</div>
+        <div class="text-xs text-dim mb-3">Chef Sakari · 1.7km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">20 min</span>
+          <span class="tag tag-price">€10.20</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:76%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 76%</div>
+      </div>
+
+      <div class="food-card" data-tags="low-carb,high-protein,local-chef">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🥦</div>
+          <div class="tag tag-protein">41g protein</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Teriyaki Chicken Bowl</div>
+        <div class="text-xs text-dim mb-3">Chef Juhani · 1.0km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">28 min</span>
+          <span class="tag tag-price">€13.50</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:83%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 83%</div>
+      </div>
+
+      <div class="food-card" data-tags="under-30,under-12,local-chef">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-2xl">🫕</div>
+          <div class="tag tag-local">Local</div>
+        </div>
+        <div class="font-display font-600 text-sm text-text mb-1">Nordic Porridge Set</div>
+        <div class="text-xs text-dim mb-3">Chef Helmi · 0.6km</div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="tag tag-time">12 min</span>
+          <span class="tag tag-price">€6.90</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:72%"></div></div>
+        <div class="text-xs text-dim mt-1">Match Score: 72%</div>
+      </div>
+
+    </div>
+    <!-- No results state -->
+    <div id="noResults" class="hidden py-8 text-center">
+      <div class="text-3xl mb-3">⚙️</div>
+      <div class="text-dim text-sm">No results match the active filter combination.</div>
+      <div class="text-dim text-xs mt-1">Expand filters or adjust outcome criteria.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 2: FOUR-WAY HANDSHAKE                                 -->
+<!-- ============================================================ -->
+<section class="fade-in delay-4">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-7 h-7 rounded border border-green/40 flex items-center justify-center text-green text-xs font-bold">02</div>
+    <div>
+      <div class="section-label" style="color: var(--green)">Interactive Module</div>
+      <h3 class="font-display text-xl font-700 text-text">The Four-Way Handshake — Logistics State Machine</h3>
+    </div>
+  </div>
+
+  <div class="panel p-6">
+    <div class="mb-6 p-3 bg-green/5 border border-green/15 rounded-md">
+      <p class="text-xs text-dim leading-relaxed">
+        <span class="text-green">PROTOTYPE LOGIC:</span> The handshake FSM (Finite State Machine) represents
+        the core orchestration model. A <code class="text-accent">Webhook trigger</code> fires on
+        Chef acceptance, routing a <code class="text-accent">geo_radius_ping</code> to available couriers
+        within the configured radius. The platform acts as the coordination authority at State 3.
+      </p>
+    </div>
+
+    <!-- State machine diagram -->
+    <div class="mb-8">
+      <!-- Nodes + connectors row -->
+      <div class="flex items-center justify-between gap-2 mb-8 overflow-x-auto pb-2">
+        <div class="sm-node" id="node-consumer">
+          <div class="node-icon">👤</div>
+          <div class="node-label" id="lbl-consumer">Consumer</div>
+          <div class="absolute -bottom-6 text-xs text-dim whitespace-nowrap" id="sub-consumer">Idle</div>
+        </div>
+        <div class="sm-connector" id="conn-1"></div>
+        <div class="sm-node" id="node-chef">
+          <div class="node-icon">👨‍🍳</div>
+          <div class="node-label" id="lbl-chef">Chef</div>
+          <div class="absolute -bottom-6 text-xs text-dim whitespace-nowrap" id="sub-chef">Idle</div>
+        </div>
+        <div class="sm-connector" id="conn-2"></div>
+        <div class="sm-node" id="node-platform">
+          <div class="node-icon">⚙️</div>
+          <div class="node-label" id="lbl-platform">Platform</div>
+          <div class="absolute -bottom-6 text-xs text-dim whitespace-nowrap" id="sub-platform">Idle</div>
+        </div>
+        <div class="sm-connector" id="conn-3"></div>
+        <div class="sm-node" id="node-courier">
+          <div class="node-icon">🛵</div>
+          <div class="node-label" id="lbl-courier">Courier</div>
+          <div class="absolute -bottom-6 text-xs text-dim whitespace-nowrap" id="sub-courier">Idle</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two column: steps + log -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+
+      <!-- Step cards -->
+      <div>
+        <div class="section-label mb-3">State Transitions</div>
+        <div class="space-y-2">
+          <div class="step-card" id="step-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="tag tag-price text-xs">STATE_1</span>
+              <span class="text-xs text-text font-600">Consumer → Indent Placed</span>
+            </div>
+            <p class="text-xs text-dim">Consumer submits an Indent referencing a Chef listing. Writes to <code class="text-accent">active_indents_collection</code> with <code>order_state: "PENDING"</code>.</p>
+          </div>
+          <div class="step-card" id="step-2">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="tag tag-protein text-xs">STATE_2</span>
+              <span class="text-xs text-text font-600">Chef → Indent Accepted</span>
+            </div>
+            <p class="text-xs text-dim">Chef acknowledges availability and confirms preparation timeline. State transitions to <code class="text-accent">"CONFIRMED"</code>. Triggers Platform webhook listener.</p>
+          </div>
+          <div class="step-card" id="step-3">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="tag tag-accent text-xs" style="background:rgba(0,229,255,0.12);color:#00e5ff;border:1px solid rgba(0,229,255,0.3)">STATE_3</span>
+              <span class="text-xs text-text font-600">Platform → Logistics Webhook</span>
+            </div>
+            <p class="text-xs text-dim">Platform dispatches webhook to <code class="text-accent">logistics_webhook_routing</code>. Computes <code>geo_radius_ping</code> from Chef coordinates and assigns <code>courier_bounty_price</code>.</p>
+          </div>
+          <div class="step-card" id="step-4">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="tag tag-vegan text-xs">STATE_4</span>
+              <span class="text-xs text-text font-600">Courier → Geo-Radius Assigned</span>
+            </div>
+            <p class="text-xs text-dim">Nearest available Courier within radius receives ping and accepts dispatch. Order state transitions to <code class="text-accent">"IN_TRANSIT"</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Runtime log -->
+      <div>
+        <div class="section-label mb-3">Simulation Log</div>
+        <div class="code-block p-4 h-64 overflow-y-auto" id="simLog">
+          <div class="text-dim text-xs">// Press "Run Simulation" to execute handshake FSM</div>
+          <div class="text-dim text-xs mt-1">// System ready — all nodes at IDLE state</div>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-sim flex-1" id="simBtn" onclick="runSimulation()">▶ Run Simulation</button>
+          <button class="btn-sim" id="resetBtn" onclick="resetSimulation()" style="background:rgba(255,77,109,0.08);border-color:rgba(255,77,109,0.4);color:#ff4d6d">↺ Reset</button>
+        </div>
+        <!-- Progress indicator -->
+        <div class="mt-3 flex items-center gap-3">
+          <div class="text-xs text-dim">Progress:</div>
+          <div class="flex-1 prog-bar"><div id="simProgress" class="prog-fill" style="width:0%"></div></div>
+          <div class="text-xs text-accent" id="simPercent">0%</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 3: DATABASE SCHEMA                                     -->
+<!-- ============================================================ -->
+<section class="fade-in delay-5">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-7 h-7 rounded border border-amber/40 flex items-center justify-center text-amber text-xs font-bold">03</div>
+    <div>
+      <div class="section-label" style="color: var(--amber)">Core Schema</div>
+      <h3 class="font-display text-xl font-700 text-text">Backend Architecture — Database Collections</h3>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- Collection 1 -->
+    <div class="panel overflow-hidden">
+      <div class="schema-header">
+        <span class="dot dot-accent"></span>
+        <span class="text-xs text-accent font-mono font-600">users_collection</span>
+        <span class="ml-auto text-xs text-dim">MongoDB</span>
+      </div>
+      <div class="code-block border-0 rounded-none p-4">
+        <div class="code-comment mb-2">// Core identity & KYC layer</div>
+        <div><span class="code-bracket">{</span></div>
+        <div class="pl-4">
+          <div><span class="code-field">user_id</span><span class="code-bracket">:</span> <span class="code-type">ObjectId</span><span class="code-bracket">,</span></div>
+          <div class="code-comment pl-0">// UUID v4, immutable</div>
+          <div class="mt-1"><span class="code-field">role_type</span><span class="code-bracket">:</span> <span class="code-type">Enum</span><span class="code-bracket">[</span></div>
+          <div class="pl-4"><span class="code-string">"CONSUMER"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"CHEF"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"COURIER"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"ADMIN"</span></div>
+          <div><span class="code-bracket">],</span></div>
+          <div class="mt-1"><span class="code-field">kyc_status</span><span class="code-bracket">:</span> <span class="code-type">Enum</span><span class="code-bracket">[</span></div>
+          <div class="pl-4"><span class="code-string">"UNVERIFIED"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"PENDING"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"VERIFIED"</span></div>
+          <div><span class="code-bracket">],</span></div>
+          <div class="mt-1"><span class="code-field">live_geo_location</span><span class="code-bracket">:</span> <span class="code-bracket">{</span></div>
+          <div class="pl-4"><span class="code-key">type</span><span class="code-bracket">:</span> <span class="code-string">"Point"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-key">coordinates</span><span class="code-bracket">:</span> <span class="code-type">[lng, lat]</span></div>
+          <div><span class="code-bracket">}</span> <span class="code-comment">// GeoJSON</span></div>
+        </div>
+        <div><span class="code-bracket">}</span></div>
+
+        <div class="mt-4 pt-4 border-t border-border">
+          <div class="code-comment mb-1">// Indexes</div>
+          <div><span class="code-key">idx_1</span><span class="code-bracket">:</span> <span class="code-string">{ live_geo_location: "2dsphere" }</span></div>
+          <div><span class="code-key">idx_2</span><span class="code-bracket">:</span> <span class="code-string">{ role_type: 1, kyc_status: 1 }</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collection 2 -->
+    <div class="panel overflow-hidden">
+      <div class="schema-header">
+        <span class="dot dot-green"></span>
+        <span class="text-xs text-green font-mono font-600">active_indents_collection</span>
+        <span class="ml-auto text-xs text-dim">MongoDB</span>
+      </div>
+      <div class="code-block border-0 rounded-none p-4">
+        <div class="code-comment mb-2">// Live order state tracking</div>
+        <div><span class="code-bracket">{</span></div>
+        <div class="pl-4">
+          <div><span class="code-field">indent_id</span><span class="code-bracket">:</span> <span class="code-type">ObjectId</span><span class="code-bracket">,</span></div>
+          <div class="mt-1"><span class="code-field">consumer_id</span><span class="code-bracket">:</span> <span class="code-type">Ref</span><span class="code-bracket">(</span><span class="code-coll">users</span><span class="code-bracket">),</span></div>
+          <div><span class="code-field">chef_id</span><span class="code-bracket">:</span> <span class="code-type">Ref</span><span class="code-bracket">(</span><span class="code-coll">users</span><span class="code-bracket">),</span></div>
+          <div><span class="code-field">courier_id</span><span class="code-bracket">:</span> <span class="code-type">Ref</span><span class="code-bracket">(</span><span class="code-coll">users</span><span class="code-bracket">) | </span><span class="code-type">null</span><span class="code-bracket">,</span></div>
+          <div class="mt-1"><span class="code-field">order_state</span><span class="code-bracket">:</span> <span class="code-type">Enum</span><span class="code-bracket">[</span></div>
+          <div class="pl-4"><span class="code-string">"PENDING"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"CONFIRMED"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"DISPATCHED"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"IN_TRANSIT"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"DELIVERED"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"CANCELLED"</span></div>
+          <div><span class="code-bracket">],</span></div>
+          <div class="mt-1"><span class="code-field">created_at</span><span class="code-bracket">:</span> <span class="code-type">ISODate</span><span class="code-bracket">,</span></div>
+          <div><span class="code-field">ttl_expires</span><span class="code-bracket">:</span> <span class="code-type">ISODate</span></div>
+        </div>
+        <div><span class="code-bracket">}</span></div>
+
+        <div class="mt-4 pt-4 border-t border-border">
+          <div class="code-comment mb-1">// Indexes</div>
+          <div><span class="code-key">idx_1</span><span class="code-bracket">:</span> <span class="code-string">{ order_state: 1 }</span></div>
+          <div><span class="code-key">idx_2</span><span class="code-bracket">:</span> <span class="code-string">{ consumer_id: 1, created_at: -1 }</span></div>
+          <div><span class="code-key">ttl</span><span class="code-bracket">:</span> <span class="code-string">{ ttl_expires: 1 }</span> <span class="code-comment">// auto-expire</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collection 3 -->
+    <div class="panel overflow-hidden">
+      <div class="schema-header">
+        <span class="dot dot-amber"></span>
+        <span class="text-xs text-amber font-mono font-600">logistics_webhook_routing</span>
+        <span class="ml-auto text-xs text-dim">MongoDB</span>
+      </div>
+      <div class="code-block border-0 rounded-none p-4">
+        <div class="code-comment mb-2">// Dispatch &amp; geo-routing events</div>
+        <div><span class="code-bracket">{</span></div>
+        <div class="pl-4">
+          <div><span class="code-field">dispatch_id</span><span class="code-bracket">:</span> <span class="code-type">ObjectId</span><span class="code-bracket">,</span></div>
+          <div class="mt-1"><span class="code-field">associated_indent_id</span><span class="code-bracket">:</span></div>
+          <div class="pl-4"><span class="code-type">Ref</span><span class="code-bracket">(</span><span class="code-coll">active_indents</span><span class="code-bracket">),</span></div>
+          <div class="mt-1"><span class="code-field">geo_radius_ping</span><span class="code-bracket">:</span> <span class="code-bracket">{</span></div>
+          <div class="pl-4"><span class="code-key">origin</span><span class="code-bracket">:</span> <span class="code-type">GeoJSON</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-key">radius_km</span><span class="code-bracket">:</span> <span class="code-type">Float</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-key">candidates_found</span><span class="code-bracket">:</span> <span class="code-type">Int</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-key">ping_timestamp</span><span class="code-bracket">:</span> <span class="code-type">ISODate</span></div>
+          <div><span class="code-bracket">},</span></div>
+          <div class="mt-1"><span class="code-field">courier_bounty_price</span><span class="code-bracket">:</span> <span class="code-bracket">{</span></div>
+          <div class="pl-4"><span class="code-key">base_rate</span><span class="code-bracket">:</span> <span class="code-type">Decimal128</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-key">surge_multiplier</span><span class="code-bracket">:</span> <span class="code-type">Float</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-key">currency</span><span class="code-bracket">:</span> <span class="code-string">"EUR"</span></div>
+          <div><span class="code-bracket">},</span></div>
+          <div class="mt-1"><span class="code-field">webhook_status</span><span class="code-bracket">:</span> <span class="code-type">Enum</span><span class="code-bracket">[</span></div>
+          <div class="pl-4"><span class="code-string">"FIRED"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"ACCEPTED"</span><span class="code-bracket">,</span></div>
+          <div class="pl-4"><span class="code-string">"TIMEOUT"</span></div>
+          <div><span class="code-bracket">]</span></div>
+        </div>
+        <div><span class="code-bracket">}</span></div>
+
+        <div class="mt-4 pt-4 border-t border-border">
+          <div class="code-comment mb-1">// Indexes</div>
+          <div><span class="code-key">idx_1</span><span class="code-bracket">:</span> <span class="code-string">{ associated_indent_id: 1 }</span></div>
+          <div><span class="code-key">idx_2</span><span class="code-bracket">:</span> <span class="code-string">{ webhook_status: 1, ping_timestamp: -1 }</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Entity relationship hint -->
+  <div class="mt-5 panel p-4">
+    <div class="section-label mb-3">Entity Relationship Overview</div>
+    <div class="code-block p-4 overflow-x-auto">
+      <div class="text-xs whitespace-nowrap">
+        <span class="code-coll">users_collection</span>
+        <span class="text-dim"> (role: CONSUMER) ──[places]──→ </span>
+        <span class="code-coll">active_indents_collection</span>
+        <span class="text-dim"> ←──[assigned_to]── </span>
+        <span class="code-coll">users_collection</span>
+        <span class="text-dim"> (role: CHEF)</span>
+      </div>
+      <div class="text-xs whitespace-nowrap mt-2">
+        <span class="code-coll">active_indents_collection</span>
+        <span class="text-dim"> ──[triggers]──→ </span>
+        <span class="code-coll">logistics_webhook_routing</span>
+        <span class="text-dim"> ──[pings]──→ </span>
+        <span class="code-coll">users_collection</span>
+        <span class="text-dim"> (role: COURIER, kyc: VERIFIED)</span>
+      </div>
+      <div class="text-xs whitespace-nowrap mt-2 code-comment">
+        // GeoJSON 2dsphere index on users.live_geo_location enables sub-10ms radius queries at scale
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                        -->
+<!-- ============================================================ -->
+<footer class="border-t border-border mt-16 pt-8 pb-12">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-5 h-5 rounded border border-accent/40 flex items-center justify-center">
+          <span class="text-accent text-xs font-bold">L</span>
+        </div>
+        <span class="text-xs text-dim font-mono">LEAD Platform — Phase 0 Staging</span>
+      </div>
+      <div class="text-xs text-muted">Internal use only · Business Finland MVS Evaluation · Confidential</div>
+    </div>
+    <div class="text-right">
+      <div class="section-label">Build Info</div>
+      <div class="text-xs text-dim mt-1">v0.1.0-alpha · FSM v2 · Schema Rev.4</div>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT                                                    -->
+<!-- ============================================================ -->
+<script>
+// ── Clock ──────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('liveClock').textContent =
+    now.toUTCString().replace('GMT', 'UTC');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+
+// ── Module 1: Filter Pills ─────────────────────────────────────
+const activeFilters = new Set();
+
+document.querySelectorAll('.filter-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const f = pill.dataset.filter;
+    if (activeFilters.has(f)) {
+      activeFilters.delete(f);
+      pill.classList.remove('active');
+    } else {
+      activeFilters.add(f);
+      pill.classList.add('active');
+    }
+    applyFilters();
+  });
+});
+
+function applyFilters() {
+  const cards = document.querySelectorAll('#foodGrid .food-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const tags = card.dataset.tags.split(',');
+    const matches = activeFilters.size === 0
+      ? true
+      : [...activeFilters].every(f => tags.includes(f));
+
+    if (matches) {
+      card.classList.remove('hidden-card');
+      card.classList.add('matched-card');
+      visible++;
+    } else {
+      card.classList.add('hidden-card');
+      card.classList.remove('matched-card');
+    }
+  });
+
+  if (activeFilters.size === 0) {
+    cards.forEach(c => { c.classList.remove('hidden-card', 'matched-card'); });
+    visible = cards.length;
+  }
+
+  document.getElementById('resultCount').textContent = visible;
+  document.getElementById('noResults').classList.toggle('hidden', visible > 0);
+}
+
+
+// ── Module 2: State Machine Simulation ────────────────────────
+let simRunning = false;
+
+const steps = [
+  {
+    node: 'consumer', conn: null, step: 1,
+    subConsumer: 'Placing Indent…',
+    log: [
+      '<span class="text-accent">[STATE_1]</span> Consumer initiating Indent…',
+      '<span class="text-dim">  └─ Writing to active_indents_collection</span>',
+      '<span class="text-dim">  └─ indent_id: IND-8f3a2b91 | order_state: "PENDING"</span>',
+    ]
+  },
+  {
+    node: 'chef', conn: 'conn-1', step: 2,
+    subConsumer: 'Indent Placed ✓', subChef: 'Reviewing…',
+    log: [
+      '<span class="text-green">[STATE_2]</span> Chef received Indent notification…',
+      '<span class="text-dim">  └─ chef_id: USR-44f1c | role: CHEF | kyc: VERIFIED</span>',
+      '<span class="text-dim">  └─ Estimated prep time: 22 mins</span>',
+      '<span class="text-dim">  └─ order_state → "CONFIRMED" ✓</span>',
+    ]
+  },
+  {
+    node: 'platform', conn: 'conn-2', step: 3,
+    subChef: 'Confirmed ✓', subPlatform: 'Firing Webhook…',
+    log: [
+      '<span style="color:#00e5ff">[STATE_3]</span> Platform webhook triggered…',
+      '<span class="text-dim">  └─ dispatch_id: DSP-9d44e | webhook_status: "FIRED"</span>',
+      '<span class="text-dim">  └─ geo_radius_ping: origin [60.1699, 24.9384] | radius: 3.5km</span>',
+      '<span class="text-dim">  └─ courier_bounty_price: €4.20 (base) × 1.1 surge = €4.62</span>',
+      '<span class="text-dim">  └─ Scanning courier pool…</span>',
+    ]
+  },
+  {
+    node: 'courier', conn: 'conn-3', step: 4,
+    subPlatform: 'Webhook Fired ✓', subCourier: 'Assigned ✓',
+    log: [
+      '<span class="text-amber">[STATE_4]</span> Geo-radius ping resolved…',
+      '<span class="text-dim">  └─ candidates_found: 3 | nearest: 0.9km</span>',
+      '<span class="text-dim">  └─ courier_id: USR-77b2c assigned to IND-8f3a2b91</span>',
+      '<span class="text-dim">  └─ webhook_status → "ACCEPTED"</span>',
+      '<span class="text-green">  └─ order_state → "IN_TRANSIT" 🛵</span>',
+      '<span class="text-green">  └─ ✅ Handshake Complete — all 4 states confirmed</span>',
+    ]
+  }
+];
+
+async function runSimulation() {
+  if (simRunning) return;
+  simRunning = true;
+  document.getElementById('simBtn').disabled = true;
+
+  // Reset visual state first
+  resetVisuals(false);
+
+  const logEl = document.getElementById('simLog');
+  logEl.innerHTML = '<div class="text-green text-xs">// FSM simulation initiated…</div>\n';
+
+  for (let i = 0; i < steps.length; i++) {
+    const s = steps[i];
+
+    // Activate current node
+    document.getElementById(`node-${s.node}`).className = 'sm-node active-node';
+
+    // Light connector
+    if (s.conn) {
+      const c = document.getElementById(s.conn);
+      c.classList.add('lit', 'pulsing');
+      setTimeout(() => c.classList.remove('pulsing'), 1200);
+    }
+
+    // Update sub-labels
+    if (s.subConsumer)  document.getElementById('sub-consumer').textContent  = s.subConsumer;
+    if (s.subChef)      document.getElementById('sub-chef').textContent      = s.subChef;
+    if (s.subPlatform)  document.getElementById('sub-platform').textContent  = s.subPlatform;
+    if (s.subCourier)   document.getElementById('sub-courier').textContent   = s.subCourier;
+
+    // Activate step card
+    document.querySelectorAll('.step-card').forEach((sc, idx) => {
+      if (idx < i)  { sc.classList.add('done-step');   sc.classList.remove('active-step'); }
+      if (idx === i){ sc.classList.add('active-step'); sc.classList.remove('done-step');   }
+    });
+
+    // Print log lines
+    for (const line of s.log) {
+      await sleep(220);
+      const d = document.createElement('div');
+      d.className = 'log-line text-xs';
+      d.innerHTML = line;
+      logEl.appendChild(d);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Update progress
+    const pct = Math.round(((i + 1) / steps.length) * 100);
+    document.getElementById('simProgress').style.width = pct + '%';
+    document.getElementById('simPercent').textContent  = pct + '%';
+
+    // Mark node completed (not last)
+    if (i < steps.length - 1) {
+      document.getElementById(`node-${s.node}`).className = 'sm-node completed-node';
+    }
+
+    await sleep(600);
+  }
+
+  simRunning = false;
+  document.getElementById('simBtn').disabled = false;
+  document.getElementById('simBtn').textContent = '▶ Re-run Simulation';
+}
+
+function resetSimulation() {
+  if (simRunning) return;
+  resetVisuals(true);
+}
+
+function resetVisuals(clearLog) {
+  ['consumer','chef','platform','courier'].forEach(n => {
+    document.getElementById(`node-${n}`).className = 'sm-node';
+  });
+  ['conn-1','conn-2','conn-3'].forEach(c => {
+    document.getElementById(c).classList.remove('lit','pulsing');
+  });
+  ['consumer','chef','platform','courier'].forEach(n => {
+    document.getElementById(`sub-${n}`).textContent = 'Idle';
+  });
+  document.querySelectorAll('.step-card').forEach(sc => {
+    sc.classList.remove('active-step','done-step');
+  });
+  document.getElementById('simProgress').style.width = '0%';
+  document.getElementById('simPercent').textContent = '0%';
+  document.getElementById('simBtn').textContent = '▶ Run Simulation';
+
+  if (clearLog) {
+    document.getElementById('simLog').innerHTML =
+      '<div class="text-dim text-xs">// System reset — all nodes at IDLE state</div>';
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>

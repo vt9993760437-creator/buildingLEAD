@@ -579,6 +579,179 @@ code { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size
 .text-text   { color: var(--text);   }
 strong.a { color: var(--accent); font-weight: 700; }
 strong.g { color: var(--green); font-weight: 700; }
+
+/* ─── ADMIN CONSOLE ──────────────────────────────────────── */
+.section-num-red  { border-color: var(--red); color: var(--red); }
+.section-label-red { color: var(--red); }
+
+.admin-conn-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; flex-wrap:wrap;
+  padding:14px 18px; margin-bottom:20px;
+  border-radius:8px;
+  background: rgba(255,77,109,0.06);
+  border: 1px solid rgba(255,77,109,0.2);
+  transition: background 0.3s;
+}
+[data-theme="light"] .admin-conn-bar { background: rgba(196,18,48,0.04); border-color: rgba(196,18,48,0.15); }
+
+.conn-dot {
+  width:9px; height:9px; border-radius:50%;
+  background: var(--border2); display:inline-block; flex-shrink:0;
+  transition: background 0.4s;
+}
+.conn-dot.live { background: var(--green); box-shadow: 0 0 8px var(--green-glow); animation: connPulse 2s infinite; }
+.conn-dot.waiting { background: var(--amber); box-shadow: 0 0 6px var(--amber-dim); }
+@keyframes connPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.admin-stat-grid {
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr));
+  gap:10px; margin-bottom:20px;
+}
+.admin-stat-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius:8px; padding:12px 14px; transition:background 0.3s;
+}
+.admin-stat-val {
+  font-family:'Syne',sans-serif; font-size:28px; font-weight:800;
+  line-height:1; margin-top:4px;
+}
+
+.admin-two-col {
+  display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;
+}
+@media(max-width:700px){ .admin-two-col { grid-template-columns:1fr; } }
+
+.admin-panel-inner { padding:16px; }
+.admin-panel-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px; flex-wrap:wrap; gap:8px;
+}
+.admin-panel-title {
+  font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+  font-weight:700; color:var(--text);
+}
+
+/* KYC cards */
+.kyc-card {
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius:8px; padding:12px 14px; margin-bottom:10px;
+  border-left: 3px solid var(--amber);
+  transition: background 0.3s;
+}
+.kyc-card.approved { border-left-color: var(--green); }
+.kyc-card.rejected { border-left-color: var(--red); opacity:0.6; }
+
+.kyc-name { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.kyc-meta { font-size:10px; color:var(--dim); margin-bottom:8px; }
+.kyc-docs { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+.kyc-doc-badge {
+  font-size:9px; padding:2px 6px; border-radius:3px;
+  background: var(--green-dim); color:var(--green);
+  border: 1px solid rgba(0,255,136,0.2);
+}
+.kyc-actions { display:flex; gap:6px; }
+.btn-approve, .btn-reject {
+  flex:1; padding:7px 10px; border-radius:6px;
+  font-size:11px; font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.06em; cursor:pointer; border:none;
+  transition: all 0.2s;
+}
+.btn-approve { background: var(--green-dim); color:var(--green); border:1px solid rgba(0,255,136,0.3); }
+.btn-approve:hover { background: rgba(0,255,136,0.2); box-shadow:0 0 10px var(--green-glow); }
+.btn-reject  { background: rgba(255,77,109,0.08); color:var(--red); border:1px solid rgba(255,77,109,0.3); }
+.btn-reject:hover  { background: rgba(255,77,109,0.18); }
+
+/* Status badges */
+.status-badge {
+  font-size:9px; padding:2px 7px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; letter-spacing:0.08em; white-space:nowrap;
+}
+.status-none     { background:var(--border); color:var(--dim); }
+.status-pending  { background:var(--amber-dim); color:var(--amber); }
+.status-approved { background:var(--green-dim); color:var(--green); }
+.status-rejected { background:rgba(255,77,109,0.10); color:var(--red); }
+
+/* Role badges */
+.role-badge {
+  font-size:9px; padding:2px 7px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; letter-spacing:0.06em;
+}
+.role-consumer { background:var(--accent-dim); color:var(--accent); }
+.role-chef     { background:var(--amber-dim);  color:var(--amber); }
+.role-courier  { background:rgba(59,130,246,0.12); color:#60a5fa; }
+[data-theme="light"] .role-courier { color:#2563eb; }
+
+/* Users table */
+.admin-table { width:100%; border-collapse:collapse; font-size:11px; }
+.admin-table th {
+  text-align:left; padding:8px 10px; font-size:9px; letter-spacing:0.12em;
+  text-transform:uppercase; color:var(--dim); border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.admin-table td {
+  padding:9px 10px; border-bottom:1px solid var(--border);
+  color:var(--text); vertical-align:middle;
+}
+.admin-table tr:last-child td { border-bottom:none; }
+.admin-table tr:hover td { background:var(--accent-dim); }
+.admin-table .id-cell { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--dim); }
+.admin-table .name-cell { font-weight:600; }
+
+/* Filter tabs */
+.admin-tabs { display:flex; gap:4px; flex-wrap:wrap; }
+.admin-tab {
+  padding:4px 10px; border-radius:4px; font-size:10px;
+  font-family:'JetBrains Mono',monospace; letter-spacing:0.06em;
+  cursor:pointer; border:1px solid var(--border); background:var(--panel2);
+  color:var(--dim); transition:all 0.15s;
+}
+.admin-tab:hover { border-color:var(--accent); color:var(--accent); }
+.admin-tab.active { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+
+/* Event log */
+.event-log {
+  height:280px; overflow-y:auto; background:var(--code-bg);
+  border:1px solid var(--border); border-radius:6px;
+  padding:10px; font-size:11px; line-height:1.7;
+}
+.event-row { display:flex; gap:8px; align-items:baseline; margin-bottom:4px; }
+.event-time { font-size:9px; color:var(--muted); white-space:nowrap; flex-shrink:0; }
+.event-type { font-size:9px; padding:1px 5px; border-radius:3px; flex-shrink:0; white-space:nowrap; }
+.event-msg  { color:var(--dim); font-size:10px; }
+.ev-onboard { background:var(--green-dim); color:var(--green); }
+.ev-kyc     { background:var(--amber-dim); color:var(--amber); }
+.ev-order   { background:var(--accent-dim); color:var(--accent); }
+.ev-system  { background:var(--border); color:var(--muted); }
+
+/* Admin action buttons */
+.btn-admin {
+  background:var(--accent-dim); border:1px solid rgba(0,229,255,0.3);
+  color:var(--accent); padding:5px 12px; border-radius:5px;
+  font-size:10px; font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.06em; cursor:pointer; transition:all 0.2s;
+}
+.btn-admin:hover { box-shadow:0 0 10px var(--accent-glow); }
+.btn-admin-red {
+  background:rgba(255,77,109,0.08); border-color:rgba(255,77,109,0.3);
+  color:var(--red);
+}
+.btn-admin-red:hover { background:rgba(255,77,109,0.16); }
+
+/* Admin toast */
+#adminToast {
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--panel); border:1px solid var(--green); color:var(--green);
+  padding:10px 20px; border-radius:6px; font-size:11px;
+  font-family:'JetBrains Mono',monospace; z-index:9999;
+  transition:transform 0.35s ease, opacity 0.35s; opacity:0;
+  box-shadow:0 0 20px var(--green-glow); white-space:nowrap;
+}
+#adminToast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+.empty-state { text-align:center; padding:32px 16px; color:var(--muted); font-size:11px; }
+.empty-state .empty-icon { font-size:24px; margin-bottom:8px; }
+
 </style>
 </head>
 
@@ -1156,6 +1329,138 @@ strong.g { color: var(--green); font-weight: 700; }
 
 </section>
 
+
+
+<!-- ─────────────────────────────────────────────────────────
+     MODULE 4: PLATFORM ADMIN CONSOLE
+──────────────────────────────────────────────────────────── -->
+<section class="section-gap fi fi-5" id="admin-console" style="margin-top:56px;">
+  <div class="section-head">
+    <div class="section-num section-num-red">04</div>
+    <div>
+      <div class="section-label section-label-red">Live Admin Console</div>
+      <h3 style="font-family:'Syne',sans-serif;font-size:clamp(16px,3vw,22px);font-weight:700;color:var(--text);">
+        Platform Operations Hub — Onboarding &amp; KYC Management
+      </h3>
+    </div>
+  </div>
+
+  <div class="panel" style="padding:20px;">
+
+    <!-- Proto note -->
+    <div class="mod-desc" style="background:rgba(255,77,109,0.06);border:1px solid rgba(255,77,109,0.15);">
+      <span style="color:var(--red);">PROTOTYPE LOGIC:</span>
+      <span style="color:var(--dim);"> This console reads live data from the RBAC Simulator via shared <code>localStorage</code> and <code>BroadcastChannel</code>. Open both pages in the same browser, complete any onboarding flow, and data appears here in real-time. KYC approval/rejection broadcasts back to the simulator.</span>
+    </div>
+
+    <!-- Connection status bar -->
+    <div class="admin-conn-bar">
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="conn-dot" id="rbacDot"></span>
+          <span style="font-size:11px;color:var(--dim);" id="rbacLabel">RBAC Simulator: Waiting…</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:var(--muted);">Storage:</span>
+          <span style="font-size:10px;" id="storageCount" class="text-accent">loading…</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:var(--muted);">Last update:</span>
+          <span style="font-size:10px;" id="lastUpdate" class="text-dim">—</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <a href="Role-Based-Switch.html" target="_blank" class="btn-admin" style="text-decoration:none;">
+          ↗ Open RBAC Simulator
+        </a>
+        <button onclick="adminRefresh()" class="btn-admin">↺ Refresh</button>
+        <button onclick="adminSeed()" class="btn-admin" style="opacity:0.7;" title="Seed demo data">⚡ Seed Demo</button>
+        <button onclick="adminClear()" class="btn-admin btn-admin-red">✕ Clear Data</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="admin-stat-grid" id="statGrid">
+      <div class="admin-stat-card">
+        <div style="font-size:10px;color:var(--dim);">Total Registered</div>
+        <div class="admin-stat-val glow-accent" id="stat-total">0</div>
+      </div>
+      <div class="admin-stat-card">
+        <div style="font-size:10px;color:var(--dim);">Consumers</div>
+        <div class="admin-stat-val" style="color:var(--accent);" id="stat-consumers">0</div>
+      </div>
+      <div class="admin-stat-card">
+        <div style="font-size:10px;color:var(--dim);">Chefs</div>
+        <div class="admin-stat-val glow-amber" id="stat-chefs">0</div>
+      </div>
+      <div class="admin-stat-card">
+        <div style="font-size:10px;color:var(--dim);">Couriers</div>
+        <div class="admin-stat-val" style="color:#60a5fa;" id="stat-couriers">0</div>
+      </div>
+      <div class="admin-stat-card" style="border-color:var(--amber);">
+        <div style="font-size:10px;color:var(--amber);">KYC Pending</div>
+        <div class="admin-stat-val glow-amber" id="stat-pending">0</div>
+      </div>
+      <div class="admin-stat-card" style="border-color:var(--green);">
+        <div style="font-size:10px;color:var(--green);">KYC Approved</div>
+        <div class="admin-stat-val glow-green" id="stat-approved">0</div>
+      </div>
+    </div>
+
+    <!-- Two-column: KYC Queue + Event Log -->
+    <div class="admin-two-col">
+
+      <!-- KYC Review Queue -->
+      <div class="panel">
+        <div class="admin-panel-inner">
+          <div class="admin-panel-hdr">
+            <span class="admin-panel-title">⏳ KYC Review Queue</span>
+            <span style="font-size:10px;color:var(--dim);">Chefs &amp; Couriers only</span>
+          </div>
+          <div id="kycQueue">
+            <div class="empty-state"><div class="empty-icon">📋</div>No pending KYC applications.<br>Open the RBAC Simulator and complete a Chef or Courier onboarding.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Event Log -->
+      <div class="panel">
+        <div class="admin-panel-inner">
+          <div class="admin-panel-hdr">
+            <span class="admin-panel-title">📡 Live Event Log</span>
+            <button onclick="renderEventLog()" class="btn-admin" style="padding:3px 8px;font-size:9px;">↺</button>
+          </div>
+          <div class="event-log" id="eventLog">
+            <div class="empty-state"><div class="empty-icon">📡</div>Waiting for events…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Registry -->
+    <div class="panel">
+      <div class="admin-panel-inner">
+        <div class="admin-panel-hdr">
+          <span class="admin-panel-title">👥 Users Registry</span>
+          <div class="admin-tabs" id="userTabs">
+            <button class="admin-tab active" onclick="setUserTab('all',this)">All</button>
+            <button class="admin-tab" onclick="setUserTab('consumer',this)">Consumers</button>
+            <button class="admin-tab" onclick="setUserTab('chef',this)">Chefs</button>
+            <button class="admin-tab" onclick="setUserTab('courier',this)">Couriers</button>
+          </div>
+        </div>
+        <div id="usersTableWrap" style="overflow-x:auto;">
+          <div class="empty-state"><div class="empty-icon">👥</div>No users registered yet.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel -->
+</section>
+
+<!-- Admin toast notification -->
+<div id="adminToast"></div>
+
 </div><!-- /main-wrap -->
 
 <!-- ─── FOOTER ────────────────────────────────────────────── -->
@@ -1699,6 +2004,366 @@ checkWidth();
 // Default: dark theme, English
 setTheme('dark');
 setLang('en');
+
+
+/* ═══════════════════════════════════════════════════════════
+   MODULE 04 — PLATFORM ADMIN CONSOLE
+   localStorage + BroadcastChannel reader
+═══════════════════════════════════════════════════════════ */
+
+const ADMIN_CHANNEL = 'lead-platform-v1';
+let ADMIN_BC = null;
+try { ADMIN_BC = new BroadcastChannel(ADMIN_CHANNEL); } catch(e) {}
+
+let _rbacConnected = false;
+let _currentTab = 'all';
+
+// ── BroadcastChannel listener ──────────────────────────────
+if (ADMIN_BC) {
+  ADMIN_BC.onmessage = function(e) {
+    const msg = e.data;
+
+    if (msg.type === 'RBAC_PING') {
+      _rbacConnected = true;
+      const dot = document.getElementById('rbacDot');
+      const lbl = document.getElementById('rbacLabel');
+      if (dot) { dot.classList.add('live'); dot.classList.remove('waiting'); }
+      if (lbl) lbl.textContent = 'RBAC Simulator: CONNECTED ✓';
+      clearTimeout(window._rbacTimeout);
+      window._rbacTimeout = setTimeout(() => {
+        _rbacConnected = false;
+        if (dot) { dot.classList.remove('live'); dot.classList.add('waiting'); }
+        if (lbl) lbl.textContent = 'RBAC Simulator: Idle (was connected)';
+      }, 30000);
+    }
+
+    if (msg.type === 'USER_REGISTERED' || msg.type === 'EVENT_ADDED') {
+      adminRefresh();
+      if (msg.type === 'USER_REGISTERED') {
+        const u = msg.user;
+        showAdminToast('✓ New ' + u.role + ' registered: ' + u.name);
+      }
+    }
+  };
+}
+
+// ── Ping RBAC tab periodically ─────────────────────────────
+function pingRBAC() {
+  if (ADMIN_BC) {
+    try { ADMIN_BC.postMessage({ type: 'ADMIN_PING' }); } catch(e) {}
+  }
+}
+setTimeout(pingRBAC, 1000);
+setInterval(pingRBAC, 12000);
+
+// ── LocalStorage helpers ───────────────────────────────────
+const ADMIN_DB = {
+  getUsers()  { try { return JSON.parse(localStorage.getItem('lead_users')  || '[]'); } catch(e) { return []; } },
+  getEvents() { try { return JSON.parse(localStorage.getItem('lead_events') || '[]'); } catch(e) { return []; } },
+
+  updateKYC(userId, status) {
+    const users = this.getUsers();
+    const u = users.find(u => u.id === userId);
+    if (!u) return;
+    u.kyc_status = status;
+    u.status = status === 'approved' ? 'active' : 'rejected';
+    u.kyc_reviewed_at = new Date().toISOString();
+    localStorage.setItem('lead_users', JSON.stringify(users));
+    // add event
+    const events = this.getEvents();
+    events.unshift({
+      id: 'EVT-' + Date.now().toString(36).toUpperCase(),
+      timestamp: new Date().toISOString(),
+      type: status === 'approved' ? 'KYC_APPROVED' : 'KYC_REJECTED',
+      role: u.role, user_id: userId, name: u.name,
+      details: 'Admin ' + (status === 'approved' ? 'approved' : 'rejected') + ' KYC for ' + u.name
+    });
+    localStorage.setItem('lead_events', JSON.stringify(events));
+    // broadcast to RBAC simulator
+    if (ADMIN_BC) {
+      try {
+        ADMIN_BC.postMessage({ type: status === 'approved' ? 'KYC_APPROVED' : 'KYC_REJECTED',
+          userId, name: u.name });
+      } catch(e) {}
+    }
+  }
+};
+
+// ── Seed mock data ─────────────────────────────────────────
+function adminSeed() {
+  const existing = ADMIN_DB.getUsers();
+  if (existing.length >= 8) {
+    showAdminToast('Demo data already present — clear first if needed');
+    return;
+  }
+
+  const now = new Date();
+  function daysAgo(n) { return new Date(now - n * 86400000).toISOString(); }
+  function minsAgo(n) { return new Date(now - n * 60000).toISOString(); }
+
+  const users = [
+    { id:'USR-AA1001', role:'consumer', name:'Matti Korhonen', kyc_status:'none',     status:'active',         registered_at: daysAgo(5), details:{ preferences:['High Protein','Vegan'], location:'Helsinki, Kallio' } },
+    { id:'USR-AA1002', role:'consumer', name:'Hanna Leinonen', kyc_status:'none',     status:'active',         registered_at: daysAgo(4), details:{ preferences:['Keto / Low Carb'], location:'Helsinki, Sörnäinen' } },
+    { id:'USR-AA1003', role:'consumer', name:'Petri Salonen',  kyc_status:'none',     status:'active',         registered_at: daysAgo(2), details:{ preferences:['Vegan','Gluten Free'], location:'Espoo, Tapiola' } },
+    { id:'USR-AA1004', role:'chef',     name:"Aino's Nordic Kitchen", legal_name:'Aino Mäkinen', kyc_status:'approved',  status:'active',         registered_at: daysAgo(7), kyc_reviewed_at: daysAgo(6), details:{ cuisine:['🇫🇮 Nordic','🥗 Health Bowls'], kitchen_type:'Home Kitchen', docs_submitted:['National ID','Food Handler Certificate','Kitchen Photo','Tax ID'] } },
+    { id:'USR-AA1005', role:'chef',     name:'Chef Dom Bakery', legal_name:'Dominic Baker',     kyc_status:'pending',   status:'pending_review', registered_at: minsAgo(45), details:{ cuisine:['🍞 Bakery','☕ Pastries'], kitchen_type:'Commercial', docs_submitted:['National ID','Food Handler Certificate','Kitchen Photo','Tax ID'] } },
+    { id:'USR-AA1006', role:'chef',     name:"Priya's Spice House", legal_name:'Priya Sharma',  kyc_status:'pending',   status:'pending_review', registered_at: minsAgo(12), details:{ cuisine:['🇮🇳 Indian','🌮 Street Food'], kitchen_type:'Home Kitchen', docs_submitted:['National ID','Food Handler Certificate','Kitchen Photo','Tax ID'] } },
+    { id:'USR-AA1007', role:'courier',  name:'Mikko Virtanen',  kyc_status:'approved',  status:'active',         registered_at: daysAgo(6), kyc_reviewed_at: daysAgo(5), details:{ vehicle_type:'Scooter', zone_km:8, docs_submitted:['National ID','Driving Licence','Live Selfie','Vehicle Insurance'] } },
+    { id:'USR-AA1008', role:'courier',  name:'Sakari Laamanen', kyc_status:'pending',   status:'pending_review', registered_at: minsAgo(90), details:{ vehicle_type:'Bicycle', zone_km:3, docs_submitted:['National ID','Driving Licence','Live Selfie','Vehicle Insurance'] } },
+    { id:'USR-AA1009', role:'courier',  name:'Helmi Rantanen',  kyc_status:'rejected',  status:'rejected',       registered_at: daysAgo(3), kyc_reviewed_at: daysAgo(2), details:{ vehicle_type:'Car', zone_km:15, docs_submitted:['National ID'] } },
+    { id:'USR-AA1010', role:'consumer', name:'Sofia Rinne',     kyc_status:'none',     status:'active',         registered_at: minsAgo(8), details:{ preferences:['Under €8','Super Fast (under 20 min)'], location:'Helsinki, Kamppi' } },
+  ];
+
+  const events = [
+    { id:'EVT-SEED001', timestamp: minsAgo(8),  type:'ONBOARD_COMPLETE', role:'consumer', user_id:'USR-AA1010', name:'Sofia Rinne',           details:'Consumer onboarding complete · KYC: none' },
+    { id:'EVT-SEED002', timestamp: minsAgo(12), type:'ONBOARD_COMPLETE', role:'chef',     user_id:'USR-AA1006', name:"Priya's Spice House",    details:'CHEF onboarding complete · KYC: pending' },
+    { id:'EVT-SEED003', timestamp: minsAgo(45), type:'ONBOARD_COMPLETE', role:'chef',     user_id:'USR-AA1005', name:'Chef Dom Bakery',         details:'CHEF onboarding complete · KYC: pending' },
+    { id:'EVT-SEED004', timestamp: minsAgo(90), type:'ONBOARD_COMPLETE', role:'courier',  user_id:'USR-AA1008', name:'Sakari Laamanen',         details:'COURIER onboarding complete · KYC: pending' },
+    { id:'EVT-SEED005', timestamp: daysAgo(2),  type:'KYC_REJECTED',     role:'courier',  user_id:'USR-AA1009', name:'Helmi Rantanen',          details:'Admin rejected KYC for Helmi Rantanen' },
+    { id:'EVT-SEED006', timestamp: daysAgo(5),  type:'KYC_APPROVED',     role:'chef',     user_id:'USR-AA1004', name:"Aino's Nordic Kitchen",   details:"Admin approved KYC for Aino's Nordic Kitchen" },
+    { id:'EVT-SEED007', timestamp: daysAgo(5),  type:'KYC_APPROVED',     role:'courier',  user_id:'USR-AA1007', name:'Mikko Virtanen',           details:'Admin approved KYC for Mikko Virtanen' },
+    { id:'EVT-SEED008', timestamp: daysAgo(2),  type:'ONBOARD_COMPLETE', role:'consumer', user_id:'USR-AA1003', name:'Petri Salonen',            details:'Consumer onboarding complete · KYC: none' },
+    { id:'EVT-SEED009', timestamp: daysAgo(4),  type:'ONBOARD_COMPLETE', role:'consumer', user_id:'USR-AA1002', name:'Hanna Leinonen',           details:'Consumer onboarding complete · KYC: none' },
+    { id:'EVT-SEED010', timestamp: daysAgo(5),  type:'ONBOARD_COMPLETE', role:'consumer', user_id:'USR-AA1001', name:'Matti Korhonen',           details:'Consumer onboarding complete · KYC: none' },
+  ];
+
+  localStorage.setItem('lead_users', JSON.stringify(users));
+  localStorage.setItem('lead_events', JSON.stringify(events));
+  showAdminToast('⚡ Demo data seeded — 10 users, 10 events');
+  adminRefresh();
+}
+
+// ── Refresh all panels ─────────────────────────────────────
+function adminRefresh() {
+  renderStats();
+  renderKYCQueue();
+  renderEventLog();
+  renderUsersTable(_currentTab);
+  updateStorageCount();
+  document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+}
+
+// ── Update storage count badge ─────────────────────────────
+function updateStorageCount() {
+  const users  = ADMIN_DB.getUsers().length;
+  const events = ADMIN_DB.getEvents().length;
+  const el = document.getElementById('storageCount');
+  if (el) el.textContent = users + ' users · ' + events + ' events';
+}
+
+// ── Render stats ───────────────────────────────────────────
+function renderStats() {
+  const users = ADMIN_DB.getUsers();
+  const consumers = users.filter(u => u.role === 'consumer').length;
+  const chefs     = users.filter(u => u.role === 'chef').length;
+  const couriers  = users.filter(u => u.role === 'courier').length;
+  const pending   = users.filter(u => u.kyc_status === 'pending').length;
+  const approved  = users.filter(u => u.kyc_status === 'approved').length;
+
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('stat-total',     users.length);
+  set('stat-consumers', consumers);
+  set('stat-chefs',     chefs);
+  set('stat-couriers',  couriers);
+  set('stat-pending',   pending);
+  set('stat-approved',  approved);
+}
+
+// ── Render KYC Queue ───────────────────────────────────────
+function renderKYCQueue() {
+  const el = document.getElementById('kycQueue');
+  if (!el) return;
+  const users = ADMIN_DB.getUsers().filter(u => u.kyc_status === 'pending');
+
+  if (users.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div>All KYC applications reviewed!<br><span style="color:var(--muted)">Complete a Chef or Courier onboarding in the RBAC Simulator to see pending items.</span></div>';
+    return;
+  }
+
+  el.innerHTML = '';
+  users.forEach(u => {
+    const icon = u.role === 'chef' ? '👨‍🍳' : '🛵';
+    const roleLabel = u.role.charAt(0).toUpperCase() + u.role.slice(1);
+    const docs = u.details?.docs_submitted || [];
+    const elapsed = timeAgo(u.registered_at);
+
+    const card = document.createElement('div');
+    card.className = 'kyc-card';
+    card.id = 'kyc-' + u.id;
+    card.innerHTML = `
+      <div class="kyc-name">${icon} ${u.name}</div>
+      <div class="kyc-meta">
+        <span class="role-badge role-${u.role}">${roleLabel}</span>
+        &nbsp;·&nbsp; Submitted ${elapsed}
+        ${u.role === 'courier' ? '&nbsp;·&nbsp; ' + (u.details?.vehicle_type || 'Vehicle') : ''}
+        ${u.role === 'chef' ? '&nbsp;·&nbsp; ' + (u.details?.kitchen_type || 'Home Kitchen') : ''}
+      </div>
+      <div class="kyc-docs">${docs.map(d => `<span class="kyc-doc-badge">✓ ${d}</span>`).join('')}</div>
+      ${u.role !== 'consumer' ? `<div class="kyc-actions">
+        <button class="btn-approve" onclick="approveKYC('${u.id}')">✓ Approve</button>
+        <button class="btn-reject"  onclick="rejectKYC('${u.id}')">✕ Reject</button>
+      </div>` : ''}
+    `;
+    el.appendChild(card);
+  });
+}
+
+// ── KYC Actions ────────────────────────────────────────────
+function approveKYC(userId) {
+  ADMIN_DB.updateKYC(userId, 'approved');
+  showAdminToast('✓ KYC Approved');
+  adminRefresh();
+}
+function rejectKYC(userId) {
+  ADMIN_DB.updateKYC(userId, 'rejected');
+  showAdminToast('✕ KYC Rejected');
+  adminRefresh();
+}
+
+// ── Render event log ───────────────────────────────────────
+function renderEventLog() {
+  const el = document.getElementById('eventLog');
+  if (!el) return;
+  const events = ADMIN_DB.getEvents();
+
+  if (events.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📡</div>No events yet. Complete an onboarding flow.</div>';
+    return;
+  }
+
+  el.innerHTML = '';
+  events.slice(0, 60).forEach(ev => {
+    const typeMap = {
+      'ONBOARD_COMPLETE': ['ev-onboard','ONBOARD'],
+      'KYC_APPROVED':     ['ev-kyc','KYC ✓'],
+      'KYC_REJECTED':     ['ev-kyc','KYC ✕'],
+      'EVENT_ADDED':      ['ev-system','EVENT'],
+    };
+    const [cls, label] = typeMap[ev.type] || ['ev-system', ev.type];
+    const row = document.createElement('div');
+    row.className = 'event-row log-line';
+    row.innerHTML = `
+      <span class="event-time">${fmtTime(ev.timestamp)}</span>
+      <span class="event-type ${cls}">${label}</span>
+      <span class="event-msg">${ev.details || ev.name || ''}</span>
+    `;
+    el.appendChild(row);
+  });
+}
+
+// ── Render users table ─────────────────────────────────────
+function setUserTab(role, btn) {
+  _currentTab = role;
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderUsersTable(role);
+}
+
+function renderUsersTable(roleFilter) {
+  const wrap = document.getElementById('usersTableWrap');
+  if (!wrap) return;
+  let users = ADMIN_DB.getUsers();
+  if (roleFilter && roleFilter !== 'all') users = users.filter(u => u.role === roleFilter);
+
+  if (users.length === 0) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div>No ' + (roleFilter === 'all' ? '' : roleFilter + ' ') + 'users registered yet.</div>';
+    return;
+  }
+
+  // Sort: pending first, then by date desc
+  users.sort((a,b) => {
+    if (a.kyc_status === 'pending' && b.kyc_status !== 'pending') return -1;
+    if (b.kyc_status === 'pending' && a.kyc_status !== 'pending') return 1;
+    return new Date(b.registered_at) - new Date(a.registered_at);
+  });
+
+  const rows = users.map(u => {
+    const kycCls = { none:'status-none', pending:'status-pending', approved:'status-approved', rejected:'status-rejected' }[u.kyc_status] || 'status-none';
+    const kycLabel = { none:'—', pending:'Pending', approved:'Approved', rejected:'Rejected' }[u.kyc_status] || u.kyc_status;
+    const icon = { consumer:'👤', chef:'👨‍🍳', courier:'🛵' }[u.role] || '?';
+    const detail = u.role === 'chef'    ? (u.details?.kitchen_type || '')
+                 : u.role === 'courier' ? (u.details?.vehicle_type || '') + ' · ' + (u.details?.zone_km || '?') + 'km'
+                 : (u.details?.location || '');
+    const approveBtn = u.kyc_status === 'pending' ?
+      `<button onclick="approveKYC('${u.id}')" style="font-size:9px;padding:2px 6px;margin-right:3px;" class="btn-approve">✓</button>
+       <button onclick="rejectKYC('${u.id}')"  style="font-size:9px;padding:2px 6px;" class="btn-reject">✕</button>` : '';
+    return `<tr>
+      <td class="id-cell">${u.id}</td>
+      <td class="name-cell">${icon} ${u.name}</td>
+      <td><span class="role-badge role-${u.role}">${u.role.toUpperCase()}</span></td>
+      <td><span class="status-badge ${kycCls}">${kycLabel}</span></td>
+      <td style="color:var(--dim);font-size:10px;">${detail}</td>
+      <td style="color:var(--dim);font-size:10px;">${timeAgo(u.registered_at)}</td>
+      <td>${approveBtn}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<table class="admin-table">
+    <thead><tr>
+      <th>USER ID</th><th>NAME</th><th>ROLE</th>
+      <th>KYC STATUS</th><th>DETAILS</th><th>REGISTERED</th><th>ACTIONS</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ── Utility: time formatters ───────────────────────────────
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso);
+  const m = Math.floor(diff/60000);
+  if (m < 1)  return 'just now';
+  if (m < 60) return m + ' min ago';
+  const h = Math.floor(m/60);
+  if (h < 24) return h + 'h ago';
+  return Math.floor(h/24) + 'd ago';
+}
+function fmtTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ── Admin toast ────────────────────────────────────────────
+function showAdminToast(msg) {
+  const t = document.getElementById('adminToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── Clear all data ─────────────────────────────────────────
+function adminClear() {
+  if (!confirm('Clear all LEAD platform data from this browser? This cannot be undone.')) return;
+  localStorage.removeItem('lead_users');
+  localStorage.removeItem('lead_events');
+  showAdminToast('✕ Data cleared');
+  adminRefresh();
+}
+
+// ── Listen to storage events (cross-tab sync) ──────────────
+window.addEventListener('storage', (e) => {
+  if (e.key === 'lead_users' || e.key === 'lead_events') {
+    adminRefresh();
+  }
+});
+
+// ── Auto-refresh every 30 seconds ─────────────────────────
+setInterval(adminRefresh, 30000);
+
+// ── Init on load ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  adminRefresh();
+  // Show waiting indicator if no data
+  const users = ADMIN_DB.getUsers();
+  if (users.length > 0) {
+    const dot = document.getElementById('rbacDot');
+    if (dot) dot.classList.add('waiting');
+    const lbl = document.getElementById('rbacLabel');
+    if (lbl) lbl.textContent = 'RBAC Simulator: ' + users.length + ' users in storage';
+  }
+});
+
 </script>
 </body>
 </html>

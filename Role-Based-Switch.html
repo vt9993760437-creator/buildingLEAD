@@ -52,7 +52,8 @@
 @keyframes bcPulse{0%,100%{opacity:1}50%{opacity:0.5}}
 
 /* ── CHIP GOAL ANIMATIONS ───────────────────────────────── */
-/* ── welcome icon animations ── */
+/* ── support chat typing dots ── */
+@keyframes typingDot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
 @keyframes iconFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.08)}}
 @keyframes iconGlow{0%,100%{box-shadow:0 0 18px rgba(16,185,129,0.15)}50%{box-shadow:0 0 32px rgba(16,185,129,0.45)}}
 @keyframes iconGlowBlue{0%,100%{box-shadow:0 0 18px rgba(59,130,246,0.15)}50%{box-shadow:0 0 32px rgba(59,130,246,0.45)}}
@@ -178,6 +179,7 @@
   <button onclick="switchView('chef')"     id="btn-chef"     class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-chef">Chef</button>
   <button onclick="switchView('courier')"  id="btn-courier"  class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-courier">Courier</button>
   <button onclick="switchView('dispatch')" id="btn-dispatch" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-dispatch">Live Dispatch</button>
+  <button onclick="switchView('support')"  id="btn-support"  class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-support">💬 Support</button>
 </div>
 <div class="flex flex-wrap justify-center gap-2 mb-6">
   <span class="text-slate-600 text-xs self-center tracking-widest mr-1" data-i18n="nav-onboard">ONBOARD →</span>
@@ -380,6 +382,53 @@
       <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-white" data-i18n="disp-title">Courier in Transit</h3><span class="text-emerald-400 font-bold" data-i18n="disp-eta">ETA: 12 mins</span></div>
       <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 w-[45%] h-full"></div></div>
       <div class="flex items-center gap-3 mt-4"><div class="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center text-xs">🚗</div><div><p class="text-sm font-bold text-white" data-i18n="disp-courier-id">Courier ID: 09</p><p class="text-xs text-slate-400" data-i18n="disp-enroute">On route to dropoff</p></div></div>
+    </div>
+  </div>
+
+  <!-- ── Support Chat ── -->
+  <div id="view-support" class="app-view hidden flex-1 flex flex-col bg-slate-900 overflow-hidden">
+
+    <!-- Chat header -->
+    <div class="flex items-center gap-3 px-4 py-3 bg-slate-800 border-b border-slate-700 flex-shrink-0">
+      <div class="relative">
+        <div class="w-9 h-9 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-lg">🤖</div>
+        <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800" id="support-status-dot"></div>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-bold text-white" data-i18n="sup-agent-name">LEAD Support</p>
+        <p class="text-[10px] text-emerald-400 font-mono" id="support-status-label" data-i18n="sup-online">● AI Agent Online</p>
+      </div>
+      <button onclick="resetChat()" class="text-slate-500 hover:text-slate-300 text-xs font-mono transition-colors" data-i18n="sup-new-chat">New chat</button>
+    </div>
+
+    <!-- Messages area -->
+    <div class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3" id="chatMessages"></div>
+
+    <!-- Typing indicator (hidden by default) -->
+    <div id="typingIndicator" class="hidden px-4 pb-2 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xs">🤖</div>
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl rounded-bl-sm px-3 py-2 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 bg-slate-400 rounded-full" style="animation:typingDot 1.2s ease-in-out infinite;"></span>
+          <span class="w-1.5 h-1.5 bg-slate-400 rounded-full" style="animation:typingDot 1.2s ease-in-out infinite 0.4s;"></span>
+          <span class="w-1.5 h-1.5 bg-slate-400 rounded-full" style="animation:typingDot 1.2s ease-in-out infinite 0.8s;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick replies -->
+    <div id="quickReplies" class="px-4 pb-2 flex-shrink-0 flex flex-wrap gap-2"></div>
+
+    <!-- Input bar -->
+    <div class="px-3 pb-4 pt-2 flex-shrink-0 border-t border-slate-700/50">
+      <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-2xl px-3 py-2">
+        <input id="chatInput" type="text" maxlength="200" data-i18n-ph="sup-placeholder" placeholder="Type your issue…"
+          class="flex-1 bg-transparent text-sm text-slate-200 placeholder-slate-500 focus:outline-none"
+          onkeydown="if(event.key==='Enter')sendChat()">
+        <button onclick="sendChat()" class="w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center transition-colors flex-shrink-0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -820,7 +869,13 @@ const T = {
     'nav-consumer':   'Consumer',
     'nav-chef':       'Chef',
     'nav-courier':    'Courier',
-    'nav-dispatch':   'Live Dispatch',
+    'nav-support':    '💬 Support',
+    'sup-agent-name': 'LEAD Support',
+    'sup-online':     '● AI Agent Online',
+    'sup-human':      '● Human Agent',
+    'sup-escalated':  '🔴 Escalated',
+    'sup-new-chat':   'New chat',
+    'sup-placeholder':'Type your issue…',
     'nav-onboard':    'ONBOARD →',
     'nav-ob-consumer':'👤 Consumer',
     'nav-ob-chef':    '👨‍🍳 Chef',
@@ -1052,7 +1107,13 @@ const T = {
     'nav-consumer':   'Kuluttaja',
     'nav-chef':       'Kokki',
     'nav-courier':    'Kuriiri',
-    'nav-dispatch':   'Live-lähetys',
+    'nav-support':    '💬 Tuki',
+    'sup-agent-name': 'LEAD-tuki',
+    'sup-online':     '● AI-agentti paikalla',
+    'sup-human':      '● Ihmisvälittäjä',
+    'sup-escalated':  '🔴 Eskaloitu',
+    'sup-new-chat':   'Uusi keskustelu',
+    'sup-placeholder':'Kirjoita ongelmasi…',
     'nav-onboard':    'REKISTERÖI →',
     'nav-ob-consumer':'👤 Kuluttaja',
     'nav-ob-chef':    '👨‍🍳 Kokki',
@@ -1422,6 +1483,7 @@ function switchView(name) {
   else if(name.includes('chef')) ab.classList.add('bg-amber-500','text-slate-900');
   else if(name.includes('courier')) ab.classList.add('bg-blue-600','text-white');
   else ab.classList.add('bg-emerald-600','text-white');
+  if(name === 'support') initChat();
 }
 
 /* ── Chip / cuisine ── */
@@ -1523,7 +1585,361 @@ function rebuildAvailGrid(lang) {
   });
 }
 
-/* ── Voice search ── */
+/* ══════════════════════════════════════════════════════
+   SUPPORT CHAT BOT ENGINE
+══════════════════════════════════════════════════════ */
+const BOT = {
+  en: {
+    welcome: "Hi! I'm LEAD's support assistant 👋\nHow can I help you today? Pick a topic or type your question.",
+    quickReplies: ['📦 Order status','❌ Cancel order','💸 Refund','🍳 Chef delay','💳 Payment issue','📍 Wrong address','🔑 Account help','❓ Other'],
+    escalatePrompts: ['refund','cancel','complaint','wrong','fraud','charge','broken','missing','lost','not received','never arrived','money back'],
+    escalateTrigger: 2,
+    responses: {
+      'order status': {
+        text: "Your most recent order **#IND-1042** is currently *In Transit* 🛵\n\nEstimated arrival: **12 mins**\nCourier: ID-09 · 2.4 km away\n\nIs there anything else about this order?",
+        replies: ['📍 Track on map','📞 Contact courier','✅ All good']
+      },
+      'track': {
+        text: "Your courier is 2.4 km away and moving toward you 📍\n\nSwitch to the **Live Dispatch** tab to see the real-time map view.",
+        replies: ['✅ Got it','🔙 Back to menu']
+      },
+      'contact courier': {
+        text: "Your courier **ID-09** is currently en route. We'll send them a message to confirm your delivery details.\n\nExpect a notification within 2 minutes.",
+        replies: ['✅ Thanks','🔙 Back to menu']
+      },
+      'cancel': {
+        text: "⚠️ Cancellation policy:\n\n• **Before chef accepts** → Full refund, instant\n• **During prep** → 50% refund\n• **After dispatch** → No refund possible\n\nYour order is currently *In Transit* — would you like to escalate this to a human agent?",
+        replies: ['👤 Connect human agent','✅ Keep my order']
+      },
+      'refund': {
+        text: "I'm connecting you to a human agent now — refund requests require manual review to protect you 🔒",
+        escalate: true
+      },
+      'chef delay': {
+        text: "Sorry about the wait! 🙏\n\nChef **Dom Bakery** accepted your order and is currently prepping. Estimated ready: **18 mins**.\n\nIf this exceeds 30 mins we'll automatically apply a **10% discount** to your next order.",
+        replies: ['✅ OK, I\'ll wait','👤 I need more help']
+      },
+      'payment': {
+        text: "For payment issues I'll need to verify your identity before making any changes.\n\nConnecting you to a secure human agent now 🔐",
+        escalate: true
+      },
+      'account': {
+        text: "I can help with account issues! What's the problem?\n\n• **Can't log in** → Reset via email\n• **Wrong profile info** → Edit in Settings\n• **Delete account** → Requires human agent",
+        replies: ['🔑 Reset password','✏️ Edit profile','🗑️ Delete account','🔙 Back']
+      },
+      'reset password': {
+        text: "A password reset link has been sent to your registered email address 📧\n\nCheck your inbox (and spam folder). The link expires in 30 minutes.",
+        replies: ['✅ Got it','🔙 Back to menu']
+      },
+      'delete account': {
+        text: "Account deletion is permanent and irreversible. A human agent must verify this request.",
+        escalate: true
+      },
+      'wrong address': {
+        text: "If your order is still being prepped, we can update your address 📍\n\nYour current delivery address:\n**Kallio, Helsinki 00530**\n\nWould you like to change it?",
+        replies: ['✏️ Yes, change address','✅ Address is correct']
+      },
+      'change address': {
+        text: "Since your order is already dispatched, the address cannot be changed automatically. Connecting you to a human agent to assist.",
+        escalate: true
+      },
+      'all good': {
+        text: "Great! Let me know if anything else comes up 😊",
+        replies: ['🔙 Back to menu']
+      },
+      'back': {
+        text: "Sure! What else can I help you with?",
+        replies: ['📦 Order status','❌ Cancel order','💸 Refund','🍳 Chef delay','💳 Payment issue','📍 Wrong address','🔑 Account help']
+      },
+      'other': {
+        text: "No problem — describe your issue in the text box below and I'll do my best to help, or connect you to a human agent if needed.",
+        replies: ['👤 Connect human agent','🔙 Back to menu']
+      },
+      'human': {
+        text: "Connecting you to a human agent now...",
+        escalate: true
+      },
+    },
+    escalateMsg: "🔴 Escalating to human agent...\n\nA LEAD support specialist has been notified. Average wait time: **3–5 mins**.\n\nYou'll receive a notification when an agent joins. Your chat history has been shared with them.",
+    escalateCard: {
+      title: "Human Agent Assigned",
+      agent: "Support Specialist · Hanna L.",
+      wait: "Joining in ~3 mins",
+      ref: "Ref: SUP-" + Math.random().toString(36).substr(2,5).toUpperCase()
+    },
+    noMatch: "I didn't quite catch that. Could you rephrase, or pick one of the options below?",
+    noMatchFinal: "I'm having trouble understanding your request. Let me connect you to a human agent who can help you better.",
+  },
+  fi: {
+    welcome: "Hei! Olen LEADin tukiassistentti 👋\nMiten voin auttaa? Valitse aihe tai kirjoita kysymyksesi.",
+    quickReplies: ['📦 Tilauksen tila','❌ Peruuta tilaus','💸 Palautus','🍳 Kokin viivästys','💳 Maksujärjestely','📍 Väärä osoite','🔑 Tilituki','❓ Muu'],
+    escalatePrompts: ['palautus','peruuta','valitus','väärä','petos','veloitus','rikki','puuttuu','kadonnut','ei saapunut','rahat takaisin'],
+    escalateTrigger: 2,
+    responses: {
+      'tilauksen tila': {
+        text: "Viimeisin tilauksesi **#IND-1042** on nyt *Matkalla* 🛵\n\nArvioitu saapuminen: **12 min**\nKuriiri: ID-09 · 2,4 km päässä\n\nOnko jotain muuta tähän tilaukseen liittyen?",
+        replies: ['📍 Seuraa kartalla','📞 Ota yhteyttä kuriirim','✅ Kaikki hyvin']
+      },
+      'seuraa': {
+        text: "Kuriirisesi on 2,4 km päässä ja liikkuu sinua kohti 📍\n\nVaihda **Live-lähetys**-välilehteen nähdäksesi reaaliaikaisen karttanäkymän.",
+        replies: ['✅ Selvä','🔙 Takaisin valikkoon']
+      },
+      'peruuta tilaus': {
+        text: "⚠️ Peruutuskäytäntö:\n\n• **Ennen kokin hyväksyntää** → Täysi palautus, välittömästi\n• **Valmistuksen aikana** → 50% palautus\n• **Lähetyksen jälkeen** → Palautus ei mahdollinen\n\nTilauksesi on jo matkalla — haluatko eskaloida tämän ihmisagenttiin?",
+        replies: ['👤 Yhdistä ihmisagenttiin','✅ Pidä tilaukseni']
+      },
+      'palautus': {
+        text: "Yhdistän sinut nyt ihmisagenttiin — palautuspyynnöt vaativat manuaalisen tarkistuksen suojaksesi 🔒",
+        escalate: true
+      },
+      'kokin viivästys': {
+        text: "Pahoittelen odotusta! 🙏\n\nKokki **Dom Bakery** on vastaanottanut tilauksesi ja valmistaa sitä. Arvioitu valmistuminen: **18 min**.\n\nJos tämä ylittää 30 min, lisäämme automaattisesti **10% alennuksen** seuraavaan tilaukseesi.",
+        replies: ['✅ Ok, odotan','👤 Tarvitsen lisää apua']
+      },
+      'maksujärjestely': {
+        text: "Maksujärjestelyissä minun täytyy vahvistaa henkilöllisyytesi ennen muutosten tekemistä.\n\nYhdistän sinut turvalliseen ihmisagenttiin nyt 🔐",
+        escalate: true
+      },
+      'tilituki': {
+        text: "Voin auttaa tilin ongelmissa! Mikä on ongelma?\n\n• **Ei voi kirjautua** → Nollaa sähköpostitse\n• **Väärät tiedot** → Muokkaa asetuksissa\n• **Poista tili** → Vaatii ihmisagentin",
+        replies: ['🔑 Nollaa salasana','✏️ Muokkaa profiilia','🗑️ Poista tili','🔙 Takaisin']
+      },
+      'nollaa salasana': {
+        text: "Salasanan nollauslinkki on lähetetty rekisteröityyn sähköpostiisi 📧\n\nTarkista postilaatikkosi (ja roskaposti). Linkki vanhenee 30 minuutissa.",
+        replies: ['✅ Selvä','🔙 Takaisin valikkoon']
+      },
+      'poista tili': {
+        text: "Tilin poistaminen on pysyvää ja peruuttamatonta. Ihmisagentin on vahvistettava tämä pyyntö.",
+        escalate: true
+      },
+      'väärä osoite': {
+        text: "Jos tilauksesi on vielä valmistuksessa, voimme päivittää osoitteesi 📍\n\nNykyinen toimitusosoitteesi:\n**Kallio, Helsinki 00530**\n\nHaluatko muuttaa sen?",
+        replies: ['✏️ Kyllä, vaihda osoite','✅ Osoite on oikein']
+      },
+      'vaihda osoite': {
+        text: "Koska tilauksesi on jo lähetetty, osoitetta ei voi muuttaa automaattisesti. Yhdistän sinut ihmisagenttiin avustamaan.",
+        escalate: true
+      },
+      'kaikki hyvin': {
+        text: "Hienoa! Ilmoita jos tarvitset apua myöhemmin 😊",
+        replies: ['🔙 Takaisin valikkoon']
+      },
+      'takaisin': {
+        text: "Selvä! Mistä muusta voin auttaa?",
+        replies: ['📦 Tilauksen tila','❌ Peruuta tilaus','💸 Palautus','🍳 Kokin viivästys','💳 Maksujärjestely','📍 Väärä osoite','🔑 Tilituki']
+      },
+      'muu': {
+        text: "Ei ongelma — kuvaile ongelmasi alla olevaan tekstikenttään ja yritän auttaa, tai yhdistän sinut ihmisagenttiin tarvittaessa.",
+        replies: ['👤 Yhdistä ihmisagenttiin','🔙 Takaisin valikkoon']
+      },
+      'ihminen': {
+        text: "Yhdistän sinut ihmisagenttiin nyt...",
+        escalate: true
+      },
+    },
+    escalateMsg: "🔴 Eskaloidaan ihmisagentille...\n\nLEADin tukiasiantuntijalle on ilmoitettu. Keskimääräinen odotusaika: **3–5 min**.\n\nSaat ilmoituksen, kun agentti liittyy. Keskusteluhistoriasi on jaettu heidän kanssaan.",
+    escalateCard: {
+      title: "Ihmisagentti määrätty",
+      agent: "Tukiasiantuntija · Hanna L.",
+      wait: "Liittyy ~3 min",
+      ref: "Viite: TUK-" + Math.random().toString(36).substr(2,5).toUpperCase()
+    },
+    noMatch: "En aivan ymmärtänyt. Voisitko muotoilla uudelleen, tai valita vaihtoehdon alta?",
+    noMatchFinal: "Minulla on vaikeuksia ymmärtää pyyntöäsi. Yhdistän sinut ihmisagenttiin.",
+  }
+};
+
+/* ── chat state ── */
+let _chatReady = false;
+let _escalated = false;
+let _noMatchCount = 0;
+
+function initChat() {
+  const el = document.getElementById('chatMessages');
+  if (!el || _chatReady) return;
+  _chatReady = true;
+  _escalated = false;
+  _noMatchCount = 0;
+  el.innerHTML = '';
+  const data = BOT[currentLang];
+  setTimeout(() => {
+    addBotMsg(data.welcome);
+    setQuickReplies(data.quickReplies);
+  }, 400);
+}
+
+function resetChat() {
+  _chatReady = false;
+  _escalated = false;
+  _noMatchCount = 0;
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('quickReplies').innerHTML = '';
+  const dot = document.getElementById('support-status-dot');
+  const lbl = document.getElementById('support-status-label');
+  const data = BOT[currentLang];
+  if (dot) { dot.style.background = ''; }
+  if (lbl) { lbl.textContent = data['sup-online'] || '● AI Agent Online'; lbl.style.color = '#34d399'; }
+  initChat();
+}
+
+function sendChat() {
+  if (_escalated) return;
+  const input = document.getElementById('chatInput');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  input.value = '';
+  addUserMsg(text);
+  document.getElementById('quickReplies').innerHTML = '';
+  processMessage(text);
+}
+
+function tapReply(text) {
+  if (_escalated) return;
+  document.getElementById('quickReplies').innerHTML = '';
+  addUserMsg(text);
+  processMessage(text);
+}
+
+function processMessage(raw) {
+  const data = BOT[currentLang];
+  const q = raw.toLowerCase().trim();
+
+  /* check forced escalation keywords */
+  const forceEscalate = data.escalatePrompts.some(kw => q.includes(kw));
+
+  /* check human request */
+  if (q.includes('human') || q.includes('agent') || q.includes('ihminen') || q.includes('agentti')) {
+    showTyping(900, () => { doEscalate(); });
+    return;
+  }
+
+  /* find best matching response key */
+  const keys = Object.keys(data.responses);
+  const match = keys.find(k => q.includes(k) || k.split(' ').every(w => q.includes(w)));
+  const resp = match ? data.responses[match] : null;
+
+  if (resp) {
+    _noMatchCount = 0;
+    showTyping(950, () => {
+      if (resp.escalate || forceEscalate) { doEscalate(resp.text); return; }
+      addBotMsg(resp.text);
+      if (resp.replies) setQuickReplies(resp.replies);
+    });
+  } else {
+    _noMatchCount++;
+    if (_noMatchCount >= data.escalateTrigger || forceEscalate) {
+      showTyping(800, () => {
+        addBotMsg(data.noMatchFinal);
+        setTimeout(doEscalate, 900);
+      });
+    } else {
+      showTyping(700, () => {
+        addBotMsg(data.noMatch);
+        setQuickReplies(data.quickReplies);
+      });
+    }
+  }
+}
+
+function doEscalate(preMsg) {
+  _escalated = true;
+  const data = BOT[currentLang];
+  const dot = document.getElementById('support-status-dot');
+  const lbl = document.getElementById('support-status-label');
+  if (dot) dot.style.background = '#f97316';
+  if (lbl) { lbl.textContent = data['sup-escalated'] || '🔴 Escalated'; lbl.style.color = '#f97316'; }
+  if (preMsg) { addBotMsg(preMsg); }
+  setTimeout(() => {
+    addBotMsg(data.escalateMsg);
+    setTimeout(() => addEscalateCard(data.escalateCard), 800);
+  }, 400);
+  document.getElementById('chatInput').placeholder = currentLang === 'fi' ? 'Odota ihmisagenttia…' : 'Waiting for human agent…';
+  document.getElementById('chatInput').disabled = true;
+  document.getElementById('quickReplies').innerHTML = '';
+}
+
+function showTyping(ms, cb) {
+  const ti = document.getElementById('typingIndicator');
+  ti.classList.remove('hidden');
+  scrollChat();
+  setTimeout(() => { ti.classList.add('hidden'); cb(); }, ms);
+}
+
+function addBotMsg(text) {
+  const el = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'flex items-end gap-2';
+  /* parse **bold** and *italic* and \n */
+  const formatted = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em class="text-slate-300">$1</em>')
+    .replace(/\n/g, '<br>');
+  d.innerHTML = `
+    <div class="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xs flex-shrink-0 mb-0.5">🤖</div>
+    <div class="max-w-[78%]">
+      <div class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-2xl rounded-bl-sm px-3 py-2.5 leading-relaxed">${formatted}</div>
+      <div class="text-[9px] text-slate-600 mt-1 ml-1">${fmtNow()}</div>
+    </div>`;
+  el.appendChild(d);
+  scrollChat();
+}
+
+function addUserMsg(text) {
+  const el = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'flex justify-end';
+  d.innerHTML = `
+    <div class="max-w-[78%]">
+      <div class="bg-emerald-600 text-white text-xs rounded-2xl rounded-br-sm px-3 py-2.5 leading-relaxed">${text}</div>
+      <div class="text-[9px] text-slate-600 mt-1 mr-1 text-right">${fmtNow()}</div>
+    </div>`;
+  el.appendChild(d);
+  scrollChat();
+}
+
+function addEscalateCard(card) {
+  const el = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'mx-auto w-full max-w-[90%]';
+  d.innerHTML = `
+    <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-center">
+      <p class="text-[10px] font-bold text-orange-400 tracking-wider mb-2">👤 ${card.title}</p>
+      <div class="w-10 h-10 rounded-full bg-slate-700 border-2 border-orange-400 flex items-center justify-center text-lg mx-auto mb-2">👩‍💼</div>
+      <p class="text-xs font-bold text-white mb-0.5">${card.agent}</p>
+      <p class="text-[10px] text-slate-400 mb-2">${card.wait}</p>
+      <div class="bg-slate-800 rounded-lg px-2 py-1 inline-block">
+        <span class="text-[9px] font-mono text-orange-400">${card.ref}</span>
+      </div>
+    </div>`;
+  el.appendChild(d);
+  scrollChat();
+}
+
+function setQuickReplies(replies) {
+  const el = document.getElementById('quickReplies');
+  el.innerHTML = '';
+  replies.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'px-3 py-1.5 bg-slate-800 border border-slate-600 text-slate-300 rounded-full text-[11px] hover:border-emerald-500 hover:text-emerald-400 transition-all';
+    btn.textContent = r;
+    btn.onclick = () => tapReply(r);
+    el.appendChild(btn);
+  });
+  scrollChat();
+}
+
+function scrollChat() {
+  const el = document.getElementById('chatMessages');
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+function fmtNow() {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+
+
+
 function startVoiceSearch() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const btn  = document.getElementById('micBtn');

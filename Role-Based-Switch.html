@@ -6,7 +6,7 @@
 <title>LEAD Phase 0 | Staging Environment</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-.radar-ping{animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;}
+
 @keyframes ping{75%,100%{transform:scale(2);opacity:0;}}
 .bg-grid{background-size:40px 40px;background-image:linear-gradient(to right,#334155 1px,transparent 1px),linear-gradient(to bottom,#334155 1px,transparent 1px);}
 .no-scrollbar::-webkit-scrollbar{display:none;}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
@@ -52,81 +52,71 @@
 @keyframes bcPulse{0%,100%{opacity:1}50%{opacity:0.5}}
 
 /* ── CHIP GOAL ANIMATIONS ───────────────────────────────── */
-@keyframes chipFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.05)}}
-@keyframes chipWiggle{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
-@keyframes chipPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0.12)}}
-.chip-anim-1{animation:chipFloat 2.2s ease-in-out infinite;}
-.chip-anim-2{animation:chipFloat 2.8s ease-in-out infinite 0.3s;}
-.chip-anim-3{animation:chipFloat 2.5s ease-in-out infinite 0.6s;}
-.chip-anim-4{animation:chipWiggle 2.4s ease-in-out infinite 0.2s;}
-.chip-anim-5{animation:chipFloat 3.1s ease-in-out infinite 0.5s;}
-.chip-anim-6{animation:chipWiggle 2.7s ease-in-out infinite 0.8s;}
-.chip-anim-7{animation:chipFloat 2.3s ease-in-out infinite 1s;}
-.chip-anim-8{animation:chipWiggle 2.9s ease-in-out infinite 0.1s;}
-.chip-anim-9{animation:chipFloat 2.6s ease-in-out infinite 0.7s;}
-.chip-anim-10{animation:chipFloat 2.1s ease-in-out infinite 0.4s;}
-.chip-anim-11{animation:chipWiggle 3s ease-in-out infinite 0.9s;}
-.chip-anim-12{animation:chipFloat 2.4s ease-in-out infinite 1.2s;}
-.chip-anim-13{animation:chipWiggle 2.2s ease-in-out infinite 0.15s;}
+/* ── welcome icon animations ── */
+@keyframes iconFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.08)}}
+@keyframes iconGlow{0%,100%{box-shadow:0 0 18px rgba(16,185,129,0.15)}50%{box-shadow:0 0 32px rgba(16,185,129,0.45)}}
+@keyframes iconGlowBlue{0%,100%{box-shadow:0 0 18px rgba(59,130,246,0.15)}50%{box-shadow:0 0 32px rgba(59,130,246,0.45)}}
+.icon-float-green{animation:iconFloat 2.6s ease-in-out infinite, iconGlow 2.6s ease-in-out infinite;}
+.icon-float-blue{animation:iconFloat 2.6s ease-in-out infinite, iconGlowBlue 2.6s ease-in-out infinite;}
 
-/* ── CHEF COOKING SCENE ──────────────────────────────────── */
-/* spoon stirs left-right over the pot — everything else is static */
-@keyframes stirBack{
-  0%,100%{transform:translateX(-13px) rotate(-32deg);}
-  25%{transform:translateX(-6px) rotate(-12deg);}
-  50%{transform:translateX(11px) rotate(30deg);}
-  75%{transform:translateX(4px) rotate(12deg);}
+/* ── voice mic button ── */
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}}
+.mic-btn{
+  width:34px;height:34px;border-radius:50%;
+  background:#1e293b;border:1.5px solid #334155;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.2s;flex-shrink:0;
 }
-/* smoke wisps rise and fade from the pot */
+.mic-btn:hover{border-color:#10b981;background:rgba(16,185,129,0.08);}
+.mic-btn.listening{
+  background:rgba(16,185,129,0.12);
+  border-color:#10b981;
+  animation:micPulse 1s ease-out infinite;
+}
+@keyframes spoonSwing{
+  0%,100%{transform:rotate(-30deg);}
+  50%{transform:rotate(30deg);}
+}
 @keyframes smokeUp{
-  0%  {opacity:0;  transform:translateY(0)   scaleX(1)   skewX(0deg);}
-  15% {opacity:0.8;}
-  60% {opacity:0.4;transform:translateY(-26px) scaleX(1.5) skewX(6deg);}
-  100%{opacity:0;  transform:translateY(-46px) scaleX(0.4) skewX(-4deg);}
+  0%  {opacity:0;transform:translateY(0) scaleX(1);}
+  20% {opacity:0.7;}
+  80% {opacity:0.2;transform:translateY(-30px) scaleX(1.8);}
+  100%{opacity:0;transform:translateY(-44px) scaleX(0.5);}
 }
-/* scene container */
 .chef-scene{
   position:relative;
-  width:150px;height:160px;
+  width:120px;height:120px;
   margin:0 auto 20px;
   flex-shrink:0;
 }
-/* chef — STATIC, no animation */
+/* chef — completely static in the centre */
 .chef-static{
-  position:absolute;bottom:54px;left:50%;
-  transform:translateX(-50%);
-  font-size:50px;line-height:1;display:block;
-}
-/* pot — STATIC */
-.chef-pot-static{
-  position:absolute;bottom:14px;left:50%;
-  transform:translateX(-50%);
-  font-size:34px;line-height:1;display:block;
-}
-/* flame — STATIC */
-.chef-flame-static{
-  position:absolute;bottom:4px;left:50%;
-  transform:translateX(-52%);
-  font-size:16px;line-height:1;display:block;
-}
-/* spoon — ANIMATED, rocks left-right as if stirring */
-.chef-spoon-stir{
-  position:absolute;bottom:42px;left:50%;
-  font-size:22px;line-height:1;display:block;
-  transform-origin:50% 0%;           /* pivot at handle top */
-  animation:stirBack 0.88s ease-in-out infinite;
-}
-/* smoke wisps — ANIMATED, rise from pot opening */
-.chef-smoke{
   position:absolute;
-  font-size:15px;
-  color:rgba(148,163,184,0.6);
-  line-height:1;
-  animation:smokeUp 2.4s ease-in-out infinite;
+  bottom:0;left:50%;
+  transform:translateX(-50%);
+  font-size:72px;line-height:1;
+  display:block;user-select:none;
 }
-.chef-smoke-1{bottom:50px;left:36%;animation-delay:0s;}
-.chef-smoke-2{bottom:50px;left:50%;animation-delay:0.75s;}
-.chef-smoke-3{bottom:50px;left:63%;animation-delay:1.5s;}
+/* spoon swings in front of the chef like a hand stirring */
+.chef-spoon-stir{
+  position:absolute;
+  bottom:12px;left:55%;
+  font-size:26px;line-height:1;display:block;
+  transform-origin:bottom center;
+  animation:spoonSwing 0.9s ease-in-out infinite;
+  user-select:none;
+}
+/* three smoke wisps rise from above the chef's head */
+.chef-smoke{
+  position:absolute;top:0;
+  font-size:14px;line-height:1;
+  color:rgba(148,163,184,0.55);
+  animation:smokeUp 2.2s ease-in-out infinite;
+  user-select:none;
+}
+.chef-smoke-1{left:32%;animation-delay:0s;}
+.chef-smoke-2{left:50%;animation-delay:0.7s;}
+.chef-smoke-3{left:66%;animation-delay:1.4s;}
 
 /* ── COURIER VEHICLE ROAD SCENE ──────────────────────────── */
 @keyframes roadScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -233,8 +223,17 @@
     <div class="flex items-center gap-2 mb-4 flex-shrink-0">
       <div class="relative flex-1">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
-        <input type="text" data-i18n-ph="con-search" placeholder="Search dishes, chefs..." class="block w-full pl-10 pr-3 py-2.5 border border-slate-700 rounded-full text-sm bg-slate-800 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500">
+        <input id="conSearchInput" type="text" data-i18n-ph="con-search" placeholder="Search dishes, chefs..." class="block w-full pl-10 pr-3 py-2.5 border border-slate-700 rounded-full text-sm bg-slate-800 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500">
       </div>
+      <!-- Voice search button -->
+      <button id="micBtn" class="mic-btn" onclick="startVoiceSearch()" title="Search by voice">
+        <svg id="micIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      </button>
     </div>
     <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-2 flex-shrink-0">
       <span class="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer" data-i18n="con-f-all">All</span>
@@ -242,6 +241,7 @@
       <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700" data-i18n="con-f-under">Under €10 💸</span>
       <span class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer" data-i18n="con-f-member">LEAD Member ★</span>
       <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700" data-i18n="con-f-prev">Previously Ordered 🔄</span>
+      <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700" data-i18n="con-f-sched">Schedule for Later 🗓️</span>
     </div>
     <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-4">
       <!-- Existing card 1 -->
@@ -355,7 +355,7 @@
       </div>
       <div class="flex-1 flex items-center justify-center relative">
         <div class="absolute w-32 h-32 bg-emerald-500/10 rounded-full flex items-center justify-center">
-          <div class="w-24 h-24 bg-emerald-500/20 rounded-full radar-ping"></div>
+          <div class="w-24 h-24 bg-emerald-500/20 rounded-full animate-ping" style="animation-duration:2s;animation-timing-function:cubic-bezier(0,0,0.2,1);"></div>
           <div class="w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] z-10"></div>
         </div>
       </div>
@@ -389,7 +389,7 @@
     <div id="oc-step-1" class="ob-step flex flex-col h-full p-5">
       <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="oc-dots-1"></div><span class="text-xs text-slate-500 font-mono" data-i18n="oc-badge">CONSUMER ONBOARDING</span></div>
       <div class="flex-1 flex flex-col justify-center items-center text-center">
-        <div class="w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(16,185,129,0.15)]">🍽️</div>
+        <div class="w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-4xl mb-6 icon-float-green">🍽️</div>
         <h2 class="text-2xl font-bold text-white mb-3 leading-tight" data-i18n="oc1-h">Find food that<br>fuels your goals.</h2>
         <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="oc1-p">Discover home-cooked meals from local chefs, filtered by outcome — not just cuisine.</p>
         <div class="space-y-2 w-full text-left mb-8">
@@ -407,25 +407,25 @@
       <p class="text-xs text-slate-400 mb-5" data-i18n="oc2-p">We'll personalise your feed. Pick all that apply.</p>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-diet-label">DIETARY PREFERENCES</p>
       <div class="flex flex-wrap gap-2 mb-5">
-        <span class="chip chip-anim-1" onclick="toggleChip(this)" data-i18n="ch-protein">💪 High Protein</span>
-        <span class="chip chip-anim-2" onclick="toggleChip(this)" data-i18n="ch-vegan">🌱 Vegan</span>
-        <span class="chip chip-anim-3" onclick="toggleChip(this)" data-i18n="ch-keto">🥑 Keto / Low Carb</span>
-        <span class="chip chip-anim-4" onclick="toggleChip(this)" data-i18n="ch-gf">🌾 Gluten Free</span>
-        <span class="chip chip-anim-5" onclick="toggleChip(this)" data-i18n="ch-veg">🍃 Vegetarian</span>
-        <span class="chip chip-anim-6" onclick="toggleChip(this)" data-i18n="ch-clean">🧘 Clean Eating</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-protein">💪 High Protein</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-vegan">🌱 Vegan</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-keto">🥑 Keto / Low Carb</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-gf">🌾 Gluten Free</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-veg">🍃 Vegetarian</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-clean">🧘 Clean Eating</span>
       </div>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-del-label">DELIVERY PRIORITY</p>
       <div class="flex flex-wrap gap-2 mb-5">
-        <span class="chip chip-anim-7" onclick="toggleChip(this)" data-i18n="ch-fast">⚡ Super Fast (under 20 min)</span>
-        <span class="chip chip-anim-8" onclick="toggleChip(this)" data-i18n="ch-value">💶 Best Value</span>
-        <span class="chip chip-anim-9" onclick="toggleChip(this)" data-i18n="ch-rated">⭐ Top Rated Chefs</span>
-        <span class="chip chip-anim-10" onclick="toggleChip(this)" data-i18n="ch-sched">🗓️ Schedule Ahead</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-fast">⚡ Super Fast (under 20 min)</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-value">💶 Best Value</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-rated">⭐ Top Rated Chefs</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-sched">🗓️ Schedule Ahead</span>
       </div>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-price-label">PRICE RANGE</p>
       <div class="flex flex-wrap gap-2 mb-6">
-        <span class="chip chip-anim-11" onclick="toggleChip(this)" data-i18n="ch-p1">€ Under €8</span>
-        <span class="chip chip-anim-12" onclick="toggleChip(this)" data-i18n="ch-p2">€€ €8–€15</span>
-        <span class="chip chip-anim-13" onclick="toggleChip(this)" data-i18n="ch-p3">€€€ €15+</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p1">€ Under €8</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p2">€€ €8–€15</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p3">€€€ €15+</span>
       </div>
       <button onclick="ocNext(3)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all mt-auto flex-shrink-0" data-i18n="btn-continue">Continue →</button>
     </div>
@@ -494,20 +494,13 @@
     <div id="och-step-1" class="ob-step flex flex-col h-full p-5">
       <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="och-dots-1"></div><span class="text-xs text-slate-500 font-mono" data-i18n="och-badge">CHEF ONBOARDING</span></div>
       <div class="flex-1 flex flex-col justify-center items-center text-center">
-        <!-- Chef cooking scene: chef/pot/flame static · spoon stirs · smoke rises -->
+        <!-- Chef scene: emoji static, spoon swings, smoke drifts up -->
         <div class="chef-scene">
-          <!-- smoke rises from pot (animated) -->
           <span class="chef-smoke chef-smoke-1">〜</span>
           <span class="chef-smoke chef-smoke-2">〜</span>
           <span class="chef-smoke chef-smoke-3">〜</span>
-          <!-- chef — completely static -->
           <span class="chef-static">👨‍🍳</span>
-          <!-- spoon stirs left/right over pot (animated) -->
           <span class="chef-spoon-stir">🥄</span>
-          <!-- pot — completely static -->
-          <span class="chef-pot-static">🍲</span>
-          <!-- flame — completely static -->
-          <span class="chef-flame-static">🔥</span>
         </div>
         <h2 class="text-2xl font-bold text-white mb-3 leading-tight" data-i18n="och1-h">Cook. Earn.<br>Thrive.</h2>
         <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="och1-p">Turn your kitchen and your recipes into a real income stream. LEAD connects you directly to hungry customers nearby.</p>
@@ -643,7 +636,7 @@
     <div id="oor-step-1" class="ob-step flex flex-col h-full p-5">
       <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="oor-dots-1"></div><span class="text-xs text-slate-500 font-mono" data-i18n="oor-badge">COURIER ONBOARDING</span></div>
       <div class="flex-1 flex flex-col justify-center items-center text-center">
-        <div class="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(59,130,246,0.15)]">🛵</div>
+        <div class="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-4xl mb-6 icon-float-blue">🛵</div>
         <h2 class="text-2xl font-bold text-white mb-3 leading-tight" data-i18n="oor1-h">Deliver. Earn.<br>Anywhere.</h2>
         <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="oor1-p">Accept food dispatch bounties in your area. Work when you want, earn what you deserve.</p>
         <div class="space-y-2 w-full text-left mb-8">
@@ -664,7 +657,30 @@
         <div class="vehicle-card" onclick="selectVehicle(this,'bicycle')" style="padding-bottom:20px;">
           <div class="vc-icon-wrap">
             <span class="vc-speed-line">═</span>
-            <span class="vc-bicycle-anim" style="font-size:26px;">🚴</span>
+            <!-- SVG bicycle with white wheels, visible on dark bg -->
+            <span class="vc-bicycle-anim" style="display:inline-block;">
+              <svg width="38" height="30" viewBox="0 0 38 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- rear wheel -->
+                <circle cx="7" cy="22" r="6" stroke="white" stroke-width="2"/>
+                <circle cx="7" cy="22" r="1.5" fill="white"/>
+                <!-- front wheel -->
+                <circle cx="31" cy="22" r="6" stroke="white" stroke-width="2"/>
+                <circle cx="31" cy="22" r="1.5" fill="white"/>
+                <!-- frame -->
+                <line x1="7" y1="22" x2="19" y2="8" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                <line x1="19" y1="8" x2="31" y2="22" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                <line x1="19" y1="8" x2="19" y2="22" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="7" y1="22" x2="19" y2="22" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+                <!-- handlebar -->
+                <line x1="25" y1="8" x2="31" y2="10" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                <line x1="25" y1="8" x2="25" y2="13" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+                <!-- seat -->
+                <line x1="16" y1="6" x2="22" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <line x1="19" y1="6" x2="19" y2="10" stroke="#94a3b8" stroke-width="1.5"/>
+                <!-- pedal crank area -->
+                <circle cx="19" cy="22" r="2" stroke="#64748b" stroke-width="1.5"/>
+              </svg>
+            </span>
           </div>
           <span class="vc-label" data-i18n="veh-bicycle">Bicycle</span>
           <div class="vc-road">
@@ -824,6 +840,7 @@ const T = {
     'con-f-under':    'Under €10 💸',
     'con-f-member':   'LEAD Member ★',
     'con-f-prev':     'Previously Ordered 🔄',
+    'con-f-sched':    'Schedule for Later 🗓️',
     'con-add':        'Add to Indent',
     /* chef dashboard */
     'chef-title':     'Active Pipeline',
@@ -1055,6 +1072,7 @@ const T = {
     'con-f-under':    'Alle 10 € 💸',
     'con-f-member':   'LEAD-jäsen ★',
     'con-f-prev':     'Aiemmin tilattu 🔄',
+    'con-f-sched':    'Aikatauluta myöhemmäksi 🗓️',
     'con-add':        'Lisää tilaukseen',
     /* chef dashboard */
     'chef-title':     'Aktiiviset tilaukset',
@@ -1505,7 +1523,47 @@ function rebuildAvailGrid(lang) {
   });
 }
 
-/* ── Init ── */
+/* ── Voice search ── */
+function startVoiceSearch() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn  = document.getElementById('micBtn');
+  const icon = document.getElementById('micIcon');
+  const input = document.getElementById('conSearchInput');
+
+  if (!SpeechRecognition) {
+    input.placeholder = currentLang === 'fi' ? 'Äänihauta ei tueta tässä selaimessa' : 'Voice not supported in this browser';
+    return;
+  }
+
+  const sr = new SpeechRecognition();
+  sr.lang = currentLang === 'fi' ? 'fi-FI' : 'en-GB';
+  sr.interimResults = false;
+  sr.maxAlternatives = 1;
+
+  sr.onstart = () => {
+    btn.classList.add('listening');
+    icon.setAttribute('stroke', '#10b981');
+    input.placeholder = currentLang === 'fi' ? 'Kuunnellaan...' : 'Listening...';
+  };
+
+  sr.onresult = (e) => {
+    input.value = e.results[0][0].transcript;
+  };
+
+  sr.onerror = () => {
+    input.placeholder = currentLang === 'fi' ? 'Yritä uudelleen...' : 'Try again...';
+  };
+
+  sr.onend = () => {
+    btn.classList.remove('listening');
+    icon.setAttribute('stroke', '#64748b');
+    const lang = T[currentLang];
+    if (!input.value) input.placeholder = lang['con-search'] || 'Search dishes, chefs...';
+  };
+
+  sr.start();
+}
+
 rebuildAvailGrid('en');
 renderDots('oc',OC_TOTAL,1);
 renderDots('och',OCH_TOTAL,1);

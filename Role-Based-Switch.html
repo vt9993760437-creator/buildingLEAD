@@ -50,6 +50,105 @@
 .bc-status-dot{width:7px;height:7px;border-radius:50%;background:#3d5278;display:inline-block;margin-right:5px;transition:background 0.3s;}
 .bc-status-dot.live{background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,0.8);animation:bcPulse 2s infinite;}
 @keyframes bcPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* ── CHIP GOAL ANIMATIONS ───────────────────────────────── */
+@keyframes chipFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.05)}}
+@keyframes chipWiggle{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes chipPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0.12)}}
+.chip-anim-1{animation:chipFloat 2.2s ease-in-out infinite;}
+.chip-anim-2{animation:chipFloat 2.8s ease-in-out infinite 0.3s;}
+.chip-anim-3{animation:chipFloat 2.5s ease-in-out infinite 0.6s;}
+.chip-anim-4{animation:chipWiggle 2.4s ease-in-out infinite 0.2s;}
+.chip-anim-5{animation:chipFloat 3.1s ease-in-out infinite 0.5s;}
+.chip-anim-6{animation:chipWiggle 2.7s ease-in-out infinite 0.8s;}
+.chip-anim-7{animation:chipFloat 2.3s ease-in-out infinite 1s;}
+.chip-anim-8{animation:chipWiggle 2.9s ease-in-out infinite 0.1s;}
+.chip-anim-9{animation:chipFloat 2.6s ease-in-out infinite 0.7s;}
+.chip-anim-10{animation:chipFloat 2.1s ease-in-out infinite 0.4s;}
+.chip-anim-11{animation:chipWiggle 3s ease-in-out infinite 0.9s;}
+.chip-anim-12{animation:chipFloat 2.4s ease-in-out infinite 1.2s;}
+.chip-anim-13{animation:chipWiggle 2.2s ease-in-out infinite 0.15s;}
+
+/* ── CHEF COOKING SCENE ──────────────────────────────────── */
+/* spoon stirs left-right over the pot — everything else is static */
+@keyframes stirBack{
+  0%,100%{transform:translateX(-13px) rotate(-32deg);}
+  25%{transform:translateX(-6px) rotate(-12deg);}
+  50%{transform:translateX(11px) rotate(30deg);}
+  75%{transform:translateX(4px) rotate(12deg);}
+}
+/* smoke wisps rise and fade from the pot */
+@keyframes smokeUp{
+  0%  {opacity:0;  transform:translateY(0)   scaleX(1)   skewX(0deg);}
+  15% {opacity:0.8;}
+  60% {opacity:0.4;transform:translateY(-26px) scaleX(1.5) skewX(6deg);}
+  100%{opacity:0;  transform:translateY(-46px) scaleX(0.4) skewX(-4deg);}
+}
+/* scene container */
+.chef-scene{
+  position:relative;
+  width:150px;height:160px;
+  margin:0 auto 20px;
+  flex-shrink:0;
+}
+/* chef — STATIC, no animation */
+.chef-static{
+  position:absolute;bottom:54px;left:50%;
+  transform:translateX(-50%);
+  font-size:50px;line-height:1;display:block;
+}
+/* pot — STATIC */
+.chef-pot-static{
+  position:absolute;bottom:14px;left:50%;
+  transform:translateX(-50%);
+  font-size:34px;line-height:1;display:block;
+}
+/* flame — STATIC */
+.chef-flame-static{
+  position:absolute;bottom:4px;left:50%;
+  transform:translateX(-52%);
+  font-size:16px;line-height:1;display:block;
+}
+/* spoon — ANIMATED, rocks left-right as if stirring */
+.chef-spoon-stir{
+  position:absolute;bottom:42px;left:50%;
+  font-size:22px;line-height:1;display:block;
+  transform-origin:50% 0%;           /* pivot at handle top */
+  animation:stirBack 0.88s ease-in-out infinite;
+}
+/* smoke wisps — ANIMATED, rise from pot opening */
+.chef-smoke{
+  position:absolute;
+  font-size:15px;
+  color:rgba(148,163,184,0.6);
+  line-height:1;
+  animation:smokeUp 2.4s ease-in-out infinite;
+}
+.chef-smoke-1{bottom:50px;left:36%;animation-delay:0s;}
+.chef-smoke-2{bottom:50px;left:50%;animation-delay:0.75s;}
+.chef-smoke-3{bottom:50px;left:63%;animation-delay:1.5s;}
+
+/* ── COURIER VEHICLE ROAD SCENE ──────────────────────────── */
+@keyframes roadScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes bicycleWheelSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes bicycleRide{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes scooterZoom{0%,100%{transform:translateX(0) rotate(-2deg)}40%{transform:translateX(4px) rotate(2deg)}70%{transform:translateX(-2px) rotate(-1deg)}}
+@keyframes carDrive{0%,100%{transform:translateX(0)}30%{transform:translateX(5px)}60%{transform:translateX(-2px)}}
+@keyframes exhaustPuff{0%,100%{opacity:0;transform:translateX(0) scale(0.5)}50%{opacity:0.6;transform:translateX(-8px) scale(1)}}
+@keyframes carWheelBounce{0%,100%{transform:rotate(0deg) translateY(0)}50%{transform:rotate(180deg) translateY(-1px)}}
+/* vehicle card overrides */
+.vehicle-card{position:relative;overflow:hidden;}
+.vc-road{position:absolute;bottom:0;left:0;right:0;height:14px;background:#1e293b;border-top:1px solid #334155;overflow:hidden;}
+.vc-road-line{display:flex;width:200%;height:100%;align-items:center;animation:roadScroll 1s linear infinite;}
+.vc-road-dash{width:14px;height:2px;background:#475569;margin:0 6px;border-radius:1px;flex-shrink:0;}
+.vc-icon-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:44px;height:44px;}
+.vc-bicycle-anim{animation:bicycleRide 0.7s ease-in-out infinite;display:inline-block;}
+.vc-scooter-anim{animation:scooterZoom 0.9s ease-in-out infinite;display:inline-block;}
+.vc-car-anim{animation:carDrive 1.1s ease-in-out infinite;display:inline-block;}
+.vc-exhaust{position:absolute;font-size:8px;right:6px;bottom:30px;animation:exhaustPuff 1.2s ease-in-out infinite;}
+.vc-exhaust-car{right:8px;}
+.vc-speed-line{position:absolute;left:-2px;font-size:7px;color:#475569;animation:exhaustPuff 0.8s ease-in-out infinite 0.2s;}
+
 /* toast */
 #adminToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#0d1220;border:1px solid rgba(0,229,255,0.4);color:#00e5ff;padding:10px 20px;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;z-index:9999;transition:transform 0.35s ease,opacity 0.35s ease;opacity:0;box-shadow:0 0 20px rgba(0,229,255,0.2);white-space:nowrap;}
 #adminToast.visible{transform:translateX(-50%) translateY(0);opacity:1;}
@@ -145,6 +244,7 @@
       <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700" data-i18n="con-f-prev">Previously Ordered 🔄</span>
     </div>
     <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-4">
+      <!-- Existing card 1 -->
       <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
         <div class="absolute top-2 left-2 bg-slate-900/80 px-2 py-1 rounded text-[10px] font-bold text-emerald-400 z-10 border border-emerald-500/30" data-i18n="con-f-under">Under €10</div>
         <div class="h-28 bg-gradient-to-br from-slate-700 to-slate-800 w-full flex items-center justify-center text-3xl">🥙</div>
@@ -154,12 +254,70 @@
           <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
         </div>
       </div>
+      <!-- Existing card 2 -->
       <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
         <div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold z-10" data-i18n="con-f-member">LEAD Member Special</div>
         <div class="h-28 bg-gradient-to-br from-slate-700 to-slate-800 w-full flex items-center justify-center text-3xl">🥗</div>
         <div class="p-4">
           <div class="flex justify-between items-start mb-1"><h3 class="font-bold text-white">Nordic Protein Bowl</h3><div class="text-right"><span class="text-xs text-slate-400 line-through mr-1">€18</span><span class="font-bold text-amber-400">€14</span></div></div>
           <p class="text-xs text-slate-400 mb-3">Chef: Juuso • ★ 4.8</p>
+          <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
+        </div>
+      </div>
+      <!-- African card 1: Jollof Rice -->
+      <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
+        <div class="absolute top-2 left-2 px-2 py-1 rounded text-[10px] font-bold z-10" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;">🌍 West African</div>
+        <div class="absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-bold z-10" style="background:rgba(15,23,42,0.85);color:#f97316;">New to You ✨</div>
+        <div class="h-28 w-full flex items-center justify-center text-5xl" style="background:linear-gradient(135deg,#451a03,#92400e);">🍚</div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-1">
+            <h3 class="font-bold text-white">Party Jollof Rice</h3>
+            <span class="font-bold text-emerald-400">€12</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-1">Chef: Amara K. • ★ 4.97 • 1.8km</p>
+          <p class="text-xs text-slate-500 mb-3">Smoky tomato base · peppered chicken · plantain side</p>
+          <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
+        </div>
+      </div>
+      <!-- African card 2: Injera Platter -->
+      <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
+        <div class="absolute top-2 left-2 px-2 py-1 rounded text-[10px] font-bold z-10" style="background:linear-gradient(135deg,#7c2d12,#b45309);color:#fff;">🇪🇹 Ethiopian</div>
+        <div class="h-28 w-full flex items-center justify-center text-5xl" style="background:linear-gradient(135deg,#1c0a00,#78350f);">🫕</div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-1">
+            <h3 class="font-bold text-white">Injera Sharing Platter</h3>
+            <span class="font-bold text-emerald-400">€15</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-1">Chef: Tigist H. • ★ 4.93 • 2.4km</p>
+          <p class="text-xs text-slate-500 mb-3">Fermented teff injera · misir wot · tibs · gomen · ayib</p>
+          <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
+        </div>
+      </div>
+      <!-- African card 3: Suya -->
+      <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
+        <div class="absolute top-2 left-2 bg-slate-900/80 px-2 py-1 rounded text-[10px] font-bold text-emerald-400 z-10 border border-emerald-500/30" data-i18n="con-f-under">Under €10</div>
+        <div class="h-28 w-full flex items-center justify-center text-5xl" style="background:linear-gradient(135deg,#0c0a00,#713f12);">🍢</div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-1">
+            <h3 class="font-bold text-white">Suya Skewers (4pc)</h3>
+            <span class="font-bold text-emerald-400">€9.50</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-1">Chef: Emeka O. • ★ 4.88 • 0.9km ⚡</p>
+          <p class="text-xs text-slate-500 mb-3">Spiced groundnut beef skewers · sliced onion · tomato</p>
+          <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
+        </div>
+      </div>
+      <!-- African card 4: Tagine -->
+      <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
+        <div class="absolute top-2 left-2 px-2 py-1 rounded text-[10px] font-bold z-10" style="background:linear-gradient(135deg,#065f46,#059669);color:#fff;">🫕 North African</div>
+        <div class="h-28 w-full flex items-center justify-center text-5xl" style="background:linear-gradient(135deg,#0a0a00,#4a3800);">🥘</div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-1">
+            <h3 class="font-bold text-white">Lamb Tagine &amp; Couscous</h3>
+            <span class="font-bold text-emerald-400">€16</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-1">Chef: Fatima B. • ★ 4.91 • 3.1km</p>
+          <p class="text-xs text-slate-500 mb-3">Slow-cooked lamb · preserved lemon · olives · harissa</p>
           <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
         </div>
       </div>
@@ -249,25 +407,25 @@
       <p class="text-xs text-slate-400 mb-5" data-i18n="oc2-p">We'll personalise your feed. Pick all that apply.</p>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-diet-label">DIETARY PREFERENCES</p>
       <div class="flex flex-wrap gap-2 mb-5">
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-protein">💪 High Protein</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-vegan">🌱 Vegan</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-keto">🥑 Keto / Low Carb</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-gf">🌾 Gluten Free</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-veg">🍃 Vegetarian</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-clean">🧘 Clean Eating</span>
+        <span class="chip chip-anim-1" onclick="toggleChip(this)" data-i18n="ch-protein">💪 High Protein</span>
+        <span class="chip chip-anim-2" onclick="toggleChip(this)" data-i18n="ch-vegan">🌱 Vegan</span>
+        <span class="chip chip-anim-3" onclick="toggleChip(this)" data-i18n="ch-keto">🥑 Keto / Low Carb</span>
+        <span class="chip chip-anim-4" onclick="toggleChip(this)" data-i18n="ch-gf">🌾 Gluten Free</span>
+        <span class="chip chip-anim-5" onclick="toggleChip(this)" data-i18n="ch-veg">🍃 Vegetarian</span>
+        <span class="chip chip-anim-6" onclick="toggleChip(this)" data-i18n="ch-clean">🧘 Clean Eating</span>
       </div>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-del-label">DELIVERY PRIORITY</p>
       <div class="flex flex-wrap gap-2 mb-5">
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-fast">⚡ Super Fast (under 20 min)</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-value">💶 Best Value</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-rated">⭐ Top Rated Chefs</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-sched">🗓️ Schedule Ahead</span>
+        <span class="chip chip-anim-7" onclick="toggleChip(this)" data-i18n="ch-fast">⚡ Super Fast (under 20 min)</span>
+        <span class="chip chip-anim-8" onclick="toggleChip(this)" data-i18n="ch-value">💶 Best Value</span>
+        <span class="chip chip-anim-9" onclick="toggleChip(this)" data-i18n="ch-rated">⭐ Top Rated Chefs</span>
+        <span class="chip chip-anim-10" onclick="toggleChip(this)" data-i18n="ch-sched">🗓️ Schedule Ahead</span>
       </div>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-price-label">PRICE RANGE</p>
       <div class="flex flex-wrap gap-2 mb-6">
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p1">€ Under €8</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p2">€€ €8–€15</span>
-        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p3">€€€ €15+</span>
+        <span class="chip chip-anim-11" onclick="toggleChip(this)" data-i18n="ch-p1">€ Under €8</span>
+        <span class="chip chip-anim-12" onclick="toggleChip(this)" data-i18n="ch-p2">€€ €8–€15</span>
+        <span class="chip chip-anim-13" onclick="toggleChip(this)" data-i18n="ch-p3">€€€ €15+</span>
       </div>
       <button onclick="ocNext(3)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all mt-auto flex-shrink-0" data-i18n="btn-continue">Continue →</button>
     </div>
@@ -336,7 +494,21 @@
     <div id="och-step-1" class="ob-step flex flex-col h-full p-5">
       <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="och-dots-1"></div><span class="text-xs text-slate-500 font-mono" data-i18n="och-badge">CHEF ONBOARDING</span></div>
       <div class="flex-1 flex flex-col justify-center items-center text-center">
-        <div class="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(245,158,11,0.15)]">👨‍🍳</div>
+        <!-- Chef cooking scene: chef/pot/flame static · spoon stirs · smoke rises -->
+        <div class="chef-scene">
+          <!-- smoke rises from pot (animated) -->
+          <span class="chef-smoke chef-smoke-1">〜</span>
+          <span class="chef-smoke chef-smoke-2">〜</span>
+          <span class="chef-smoke chef-smoke-3">〜</span>
+          <!-- chef — completely static -->
+          <span class="chef-static">👨‍🍳</span>
+          <!-- spoon stirs left/right over pot (animated) -->
+          <span class="chef-spoon-stir">🥄</span>
+          <!-- pot — completely static -->
+          <span class="chef-pot-static">🍲</span>
+          <!-- flame — completely static -->
+          <span class="chef-flame-static">🔥</span>
+        </div>
         <h2 class="text-2xl font-bold text-white mb-3 leading-tight" data-i18n="och1-h">Cook. Earn.<br>Thrive.</h2>
         <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="och1-p">Turn your kitchen and your recipes into a real income stream. LEAD connects you directly to hungry customers nearby.</p>
         <div class="space-y-2 w-full text-left mb-8">
@@ -372,7 +544,19 @@
       <p class="text-xs text-slate-400 mb-4" data-i18n="och3-p">Pick what your kitchen does best.</p>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="och3-cuisine-lbl">CUISINE STYLES</p>
       <div class="flex flex-wrap gap-2 mb-4" id="cuisineTags">
-        <span class="cuisine-tag" onclick="toggleCuisine(this)">🇫🇮 Nordic</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇳 Indian</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇹 Italian</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇯🇵 Japanese</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🥗 Health Bowls</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🍞 Bakery</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🥩 BBQ / Grill</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🌮 Street Food</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🍜 Asian Fusion</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🇫🇮 Nordic</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇳 Indian</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇹 Italian</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🇯🇵 Japanese</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🥗 Health Bowls</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🍞 Bakery</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🥩 BBQ / Grill</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🌮 Street Food</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🍜 Asian Fusion</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🌍 West African</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🇪🇹 Ethiopian</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🫕 North African</span>
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🍛 East African</span>
       </div>
       <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="och3-diet-lbl">DIETARY SPECIALISATIONS</p>
       <div class="flex flex-wrap gap-2 mb-5">
@@ -476,9 +660,39 @@
       <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="oor2-h">What's your vehicle?</h2>
       <p class="text-xs text-slate-400 mb-6" data-i18n="oor2-p">Vehicle type determines dispatch eligibility and bounty tier.</p>
       <div class="flex gap-3 mb-6" id="vehicleCards">
-        <div class="vehicle-card" onclick="selectVehicle(this,'bicycle')"><span class="vc-icon">🚴</span><span class="vc-label" data-i18n="veh-bicycle">Bicycle</span></div>
-        <div class="vehicle-card" onclick="selectVehicle(this,'scooter')"><span class="vc-icon">🛵</span><span class="vc-label" data-i18n="veh-scooter">Scooter</span></div>
-        <div class="vehicle-card" onclick="selectVehicle(this,'car')"><span class="vc-icon">🚗</span><span class="vc-label" data-i18n="veh-car">Car</span></div>
+        <!-- BICYCLE -->
+        <div class="vehicle-card" onclick="selectVehicle(this,'bicycle')" style="padding-bottom:20px;">
+          <div class="vc-icon-wrap">
+            <span class="vc-speed-line">═</span>
+            <span class="vc-bicycle-anim" style="font-size:26px;">🚴</span>
+          </div>
+          <span class="vc-label" data-i18n="veh-bicycle">Bicycle</span>
+          <div class="vc-road">
+            <div class="vc-road-line"><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div></div>
+          </div>
+        </div>
+        <!-- SCOOTER -->
+        <div class="vehicle-card" onclick="selectVehicle(this,'scooter')" style="padding-bottom:20px;">
+          <div class="vc-icon-wrap">
+            <span class="vc-exhaust">💨</span>
+            <span class="vc-scooter-anim" style="font-size:26px;">🛵</span>
+          </div>
+          <span class="vc-label" data-i18n="veh-scooter">Scooter</span>
+          <div class="vc-road">
+            <div class="vc-road-line" style="animation-duration:0.7s;"><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div></div>
+          </div>
+        </div>
+        <!-- CAR -->
+        <div class="vehicle-card" onclick="selectVehicle(this,'car')" style="padding-bottom:20px;">
+          <div class="vc-icon-wrap">
+            <span class="vc-exhaust vc-exhaust-car">💨</span>
+            <span class="vc-car-anim" style="font-size:26px;">🚗</span>
+          </div>
+          <span class="vc-label" data-i18n="veh-car">Car</span>
+          <div class="vc-road">
+            <div class="vc-road-line" style="animation-duration:0.5s;"><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div><div class="vc-road-dash"></div></div>
+          </div>
+        </div>
       </div>
       <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-6">
         <p class="text-[10px] font-bold text-slate-500 tracking-wider mb-3" data-i18n="oor2-tier-lbl">VEHICLE TIER COMPARISON</p>

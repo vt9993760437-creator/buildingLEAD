@@ -1,826 +1,1303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEAD Phase 0 | Staging Environment</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .radar-ping { animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
-        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
-        .bg-grid { background-size:40px 40px; background-image:linear-gradient(to right,#334155 1px,transparent 1px),linear-gradient(to bottom,#334155 1px,transparent 1px); }
-        .no-scrollbar::-webkit-scrollbar{display:none;} .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
-        @keyframes slideInRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
-        @keyframes slideInLeft{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
-        .step-enter{animation:slideInRight 0.3s ease both;} .step-back{animation:slideInLeft 0.3s ease both;}
-        .step-dot{width:7px;height:7px;border-radius:50%;background:#334155;transition:all 0.3s;}
-        .step-dot.active{background:#10b981;width:20px;border-radius:4px;} .step-dot.done{background:#10b981;opacity:0.5;}
-        .chip{padding:6px 12px;border-radius:999px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;cursor:pointer;transition:all 0.18s;white-space:nowrap;user-select:none;}
-        .chip:hover{border-color:#10b981;color:#6ee7b7;} .chip.picked{background:rgba(16,185,129,0.15);border-color:#10b981;color:#34d399;}
-        .vehicle-card{border:2px solid #334155;border-radius:12px;background:#1e293b;padding:14px 10px;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
-        .vehicle-card:hover{border-color:#6ee7b7;} .vehicle-card.picked{border-color:#10b981;background:rgba(16,185,129,0.12);box-shadow:0 0 0 3px rgba(16,185,129,0.15);}
-        .vehicle-card .vc-icon{font-size:26px;} .vehicle-card .vc-label{font-size:11px;color:#64748b;font-weight:600;} .vehicle-card.picked .vc-label{color:#34d399;}
-        .upload-btn{width:100%;border:1.5px dashed #334155;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;background:#1e293b;cursor:pointer;transition:all 0.2s;}
-        .upload-btn:hover{border-color:#10b981;background:rgba(16,185,129,0.07);} .upload-btn.uploaded{border-color:#10b981;border-style:solid;background:rgba(16,185,129,0.1);}
-        .upload-btn .u-icon{font-size:18px;} .upload-btn .u-text{font-size:11px;color:#64748b;} .upload-btn.uploaded .u-text{color:#34d399;}
-        .toggle{position:relative;width:40px;height:22px;} .toggle input{opacity:0;width:0;height:0;}
-        .slider{position:absolute;inset:0;border-radius:22px;background:#334155;cursor:pointer;transition:0.3s;}
-        .slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;border-radius:50%;background:#94a3b8;transition:0.3s;}
-        .toggle input:checked+.slider{background:#10b981;} .toggle input:checked+.slider::before{transform:translateX(18px);background:#fff;}
-        .zone-ring{width:28px;height:28px;border-radius:50%;border:2px solid #334155;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:9px;color:#64748b;font-weight:700;transition:all 0.2s;}
-        .zone-ring.chosen{border-color:#10b981;color:#34d399;background:rgba(16,185,129,0.12);}
-        .toggle-wrap{display:flex;align-items:center;justify-content:space-between;}
-        @keyframes successPop{0%{transform:scale(0.7);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
-        .success-pop{animation:successPop 0.5s ease both;}
-        .avail-slot{font-size:9px;padding:4px 3px;border-radius:4px;border:1px solid #334155;background:#1e293b;color:#64748b;cursor:pointer;text-align:center;transition:all 0.15s;}
-        .avail-slot.on{background:rgba(16,185,129,0.15);border-color:#10b981;color:#34d399;}
-        .cuisine-tag{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#64748b;font-size:11px;cursor:pointer;transition:all 0.18s;}
-        .cuisine-tag.on{background:rgba(16,185,129,0.12);border-color:#10b981;color:#34d399;}
-        .progress-bar{height:3px;border-radius:3px;background:#1e293b;overflow:hidden;}
-        .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#34d399);transition:width 0.4s ease;}
-        *{box-sizing:border-box;} ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:#334155;border-radius:2px;}
-        /* ── Admin Toast ─────────────────────────────────── */
-        #adminToast{
-            position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px);
-            background:#0d1220; border:1px solid rgba(0,229,255,0.4); color:#00e5ff;
-            padding:10px 20px; border-radius:8px; font-size:12px; font-family:'JetBrains Mono',monospace;
-            z-index:9999; transition:transform 0.35s ease, opacity 0.35s ease; opacity:0;
-            box-shadow:0 0 20px rgba(0,229,255,0.2); white-space:nowrap;
-        }
-        #adminToast.visible{transform:translateX(-50%) translateY(0); opacity:1;}
-        /* ── Admin link bar ──────────────────────────────── */
-        #adminBar{background:#060d1a;border-bottom:1px solid #1a2540;padding:6px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
-        .admin-link{color:#00e5ff;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.1em;text-decoration:none;padding:4px 10px;border:1px solid rgba(0,229,255,0.3);border-radius:4px;transition:all 0.2s;}
-        .admin-link:hover{background:rgba(0,229,255,0.08);box-shadow:0 0 8px rgba(0,229,255,0.2);}
-        .bc-status-dot{width:7px;height:7px;border-radius:50%;background:#3d5278;display:inline-block;margin-right:5px;transition:background 0.3s;}
-        .bc-status-dot.live{background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,0.8);animation:bcPulse 2s infinite;}
-        @keyframes bcPulse{0%,100%{opacity:1}50%{opacity:0.5}}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEAD Phase 0 | Staging Environment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.radar-ping{animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;}
+@keyframes ping{75%,100%{transform:scale(2);opacity:0;}}
+.bg-grid{background-size:40px 40px;background-image:linear-gradient(to right,#334155 1px,transparent 1px),linear-gradient(to bottom,#334155 1px,transparent 1px);}
+.no-scrollbar::-webkit-scrollbar{display:none;}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
+@keyframes slideInRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
+.step-enter{animation:slideInRight 0.3s ease both;}.step-back{animation:slideInLeft 0.3s ease both;}
+.step-dot{width:7px;height:7px;border-radius:50%;background:#334155;transition:all 0.3s;}
+.step-dot.active{background:#10b981;width:20px;border-radius:4px;}.step-dot.done{background:#10b981;opacity:0.5;}
+.chip{padding:6px 12px;border-radius:999px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;cursor:pointer;transition:all 0.18s;white-space:nowrap;user-select:none;}
+.chip:hover{border-color:#10b981;color:#6ee7b7;}.chip.picked{background:rgba(16,185,129,0.15);border-color:#10b981;color:#34d399;}
+.vehicle-card{border:2px solid #334155;border-radius:12px;background:#1e293b;padding:14px 10px;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
+.vehicle-card:hover{border-color:#6ee7b7;}.vehicle-card.picked{border-color:#10b981;background:rgba(16,185,129,0.12);box-shadow:0 0 0 3px rgba(16,185,129,0.15);}
+.vehicle-card .vc-icon{font-size:26px;}.vehicle-card .vc-label{font-size:11px;color:#64748b;font-weight:600;}.vehicle-card.picked .vc-label{color:#34d399;}
+.upload-btn{width:100%;border:1.5px dashed #334155;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;background:#1e293b;cursor:pointer;transition:all 0.2s;}
+.upload-btn:hover{border-color:#10b981;background:rgba(16,185,129,0.07);}.upload-btn.uploaded{border-color:#10b981;border-style:solid;background:rgba(16,185,129,0.1);}
+.upload-btn .u-icon{font-size:18px;}.upload-btn .u-text{font-size:11px;color:#64748b;}.upload-btn.uploaded .u-text{color:#34d399;}
+.toggle{position:relative;width:40px;height:22px;}.toggle input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;border-radius:22px;background:#334155;cursor:pointer;transition:0.3s;}
+.slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;border-radius:50%;background:#94a3b8;transition:0.3s;}
+.toggle input:checked+.slider{background:#10b981;}.toggle input:checked+.slider::before{transform:translateX(18px);background:#fff;}
+.zone-ring{width:28px;height:28px;border-radius:50%;border:2px solid #334155;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:9px;color:#64748b;font-weight:700;transition:all 0.2s;}
+.zone-ring.chosen{border-color:#10b981;color:#34d399;background:rgba(16,185,129,0.12);}
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;}
+@keyframes successPop{0%{transform:scale(0.7);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.success-pop{animation:successPop 0.5s ease both;}
+.avail-slot{font-size:9px;padding:4px 3px;border-radius:4px;border:1px solid #334155;background:#1e293b;color:#64748b;cursor:pointer;text-align:center;transition:all 0.15s;}
+.avail-slot.on{background:rgba(16,185,129,0.15);border-color:#10b981;color:#34d399;}
+.cuisine-tag{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#64748b;font-size:11px;cursor:pointer;transition:all 0.18s;}
+.cuisine-tag.on{background:rgba(16,185,129,0.12);border-color:#10b981;color:#34d399;}
+.progress-bar{height:3px;border-radius:3px;background:#1e293b;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#34d399);transition:width 0.4s ease;}
+*{box-sizing:border-box;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#334155;border-radius:2px;}
+/* lang toggle */
+.lang-btn{background:transparent;border:1px solid #1a2540;color:#5c7aaa;padding:3px 9px;border-radius:4px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;}
+.lang-btn:hover{border-color:#00e5ff;color:#00e5ff;}
+.lang-btn.active{background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.5);color:#00e5ff;box-shadow:0 0 8px rgba(0,229,255,0.15);}
+/* admin bar */
+#adminBar{background:#060d1a;border-bottom:1px solid #1a2540;padding:6px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.admin-link{color:#00e5ff;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.1em;text-decoration:none;padding:4px 10px;border:1px solid rgba(0,229,255,0.3);border-radius:4px;transition:all 0.2s;}
+.admin-link:hover{background:rgba(0,229,255,0.08);box-shadow:0 0 8px rgba(0,229,255,0.2);}
+.bc-status-dot{width:7px;height:7px;border-radius:50%;background:#3d5278;display:inline-block;margin-right:5px;transition:background 0.3s;}
+.bc-status-dot.live{background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,0.8);animation:bcPulse 2s infinite;}
+@keyframes bcPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+/* toast */
+#adminToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#0d1220;border:1px solid rgba(0,229,255,0.4);color:#00e5ff;padding:10px 20px;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;z-index:9999;transition:transform 0.35s ease,opacity 0.35s ease;opacity:0;box-shadow:0 0 20px rgba(0,229,255,0.2);white-space:nowrap;}
+#adminToast.visible{transform:translateX(-50%) translateY(0);opacity:1;}
+</style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen font-sans flex flex-col items-center py-0">
 
-    <!-- Admin connection bar -->
-    <div id="adminBar" style="width:100%;">
-        <div style="display:flex;align-items:center;gap:8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#5c7aaa;">
-            <span class="bc-status-dot" id="bcDot"></span>
-            <span id="bcLabel">Admin Panel: not connected</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:10px;color:#3d5278;font-family:'JetBrains Mono',monospace;" id="regCount">0 users registered this session</span>
-            <a href="index.html" target="_blank" class="admin-link">⚙ Open Admin Panel ↗</a>
-        </div>
+<!-- ── Admin / lang bar ── -->
+<div id="adminBar" style="width:100%;">
+  <div style="display:flex;align-items:center;gap:8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#5c7aaa;">
+    <span class="bc-status-dot" id="bcDot"></span>
+    <span id="bcLabel" data-i18n="bar-notconn">Admin Panel: not connected</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <!-- Language toggle -->
+    <div style="display:flex;gap:4px;align-items:center;">
+      <button id="btnEN" class="lang-btn active" onclick="setLang('en')">🇬🇧 EN</button>
+      <button id="btnFI" class="lang-btn"        onclick="setLang('fi')">🇫🇮 FI</button>
     </div>
+    <div style="width:1px;height:18px;background:#1a2540;"></div>
+    <span style="font-size:10px;color:#3d5278;font-family:'JetBrains Mono',monospace;" id="regCount" data-i18n="bar-regcount">0 users registered this session</span>
+    <a href="index.html" target="_blank" class="admin-link" data-i18n="bar-openadmin">⚙ Open Admin Panel ↗</a>
+  </div>
+</div>
 
-    <div class="text-center mb-6 max-w-2xl px-4 pt-6">
-        <h1 class="text-3xl font-bold text-white tracking-wide">LEAD <span class="text-emerald-500">Phase 0</span> Staging Environment</h1>
-        <p class="text-slate-400 mt-1 text-sm">Internal Architecture & Prototype Logic | Business Finland MVS</p>
-        <p class="text-slate-500 text-xs mt-3 tracking-widest">ROLE-BASED ACCESS CONTROL (RBAC) SIMULATOR</p>
+<!-- ── Page header ── -->
+<div class="text-center mb-6 max-w-2xl px-4 pt-6">
+  <h1 class="text-3xl font-bold text-white tracking-wide">LEAD <span class="text-emerald-500">Phase 0</span> <span data-i18n="hdr-staging">Staging Environment</span></h1>
+  <p class="text-slate-400 mt-1 text-sm" data-i18n="hdr-sub">Internal Architecture &amp; Prototype Logic | Business Finland MVS</p>
+  <p class="text-slate-500 text-xs mt-3 tracking-widest" data-i18n="hdr-rbac">ROLE-BASED ACCESS CONTROL (RBAC) SIMULATOR</p>
+</div>
+
+<!-- ── Role nav ── -->
+<div class="flex flex-wrap justify-center gap-2 mb-2">
+  <button onclick="switchView('home')"     id="btn-home"     class="role-btn px-4 py-2 rounded-md bg-emerald-600 text-white font-medium transition-all shadow-lg shadow-emerald-900/50 text-sm" data-i18n="nav-hub">Platform Hub</button>
+  <button onclick="switchView('consumer')" id="btn-consumer" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-consumer">Consumer</button>
+  <button onclick="switchView('chef')"     id="btn-chef"     class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-chef">Chef</button>
+  <button onclick="switchView('courier')"  id="btn-courier"  class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-courier">Courier</button>
+  <button onclick="switchView('dispatch')" id="btn-dispatch" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm" data-i18n="nav-dispatch">Live Dispatch</button>
+</div>
+<div class="flex flex-wrap justify-center gap-2 mb-6">
+  <span class="text-slate-600 text-xs self-center tracking-widest mr-1" data-i18n="nav-onboard">ONBOARD →</span>
+  <button onclick="switchView('onboard-consumer')" id="btn-onboard-consumer" class="role-btn px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 font-medium transition-all text-xs border border-slate-700" data-i18n="nav-ob-consumer">👤 Consumer</button>
+  <button onclick="switchView('onboard-chef')"     id="btn-onboard-chef"     class="role-btn px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 font-medium transition-all text-xs border border-slate-700" data-i18n="nav-ob-chef">👨‍🍳 Chef</button>
+  <button onclick="switchView('onboard-courier')"  id="btn-onboard-courier"  class="role-btn px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 font-medium transition-all text-xs border border-slate-700" data-i18n="nav-ob-courier">🛵 Courier</button>
+</div>
+
+<!-- ══════════════════ PHONE MOCKUP ══════════════════ -->
+<div class="w-[380px] bg-slate-900 rounded-[2.5rem] shadow-2xl border-[8px] border-slate-800 overflow-hidden relative flex flex-col" style="height:750px;">
+  <div class="h-6 w-full flex justify-between items-center px-6 mt-2 opacity-50 text-[10px] font-bold flex-shrink-0">
+    <span id="statusTime">9:41</span>
+    <div class="flex gap-1"><span>5G</span><span>100%</span></div>
+  </div>
+
+  <!-- ── Platform Hub ── -->
+  <div id="view-home" class="app-view flex-1 p-6 flex flex-col overflow-y-auto no-scrollbar">
+    <h2 class="text-xl font-bold text-white mb-6" data-i18n="hub-title">System Status</h2>
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400" data-i18n="hub-indents">Active Indents</p><p class="text-2xl font-bold text-emerald-400 mt-1">14</p></div>
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400" data-i18n="hub-chefs">Online Chefs</p><p class="text-2xl font-bold text-white mt-1">6</p></div>
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400" data-i18n="hub-couriers">Active Couriers</p><p class="text-2xl font-bold text-white mt-1">8</p></div>
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400" data-i18n="hub-ping">Database Ping</p><p class="text-2xl font-bold text-emerald-400 mt-1">12ms</p></div>
     </div>
-
-    <div class="flex flex-wrap justify-center gap-2 mb-2">
-        <button onclick="switchView('home')"     id="btn-home"     class="role-btn px-4 py-2 rounded-md bg-emerald-600 text-white font-medium transition-all shadow-lg shadow-emerald-900/50 text-sm">Platform Hub</button>
-        <button onclick="switchView('consumer')" id="btn-consumer" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm">Consumer</button>
-        <button onclick="switchView('chef')"     id="btn-chef"     class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm">Chef</button>
-        <button onclick="switchView('courier')"  id="btn-courier"  class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm">Courier</button>
-        <button onclick="switchView('dispatch')" id="btn-dispatch" class="role-btn px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all text-sm">Live Dispatch</button>
+    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex-1">
+      <h3 class="text-sm font-bold text-slate-300 mb-3" data-i18n="hub-log">Live Webhook Log</h3>
+      <div class="space-y-2 text-xs font-mono text-slate-400" id="homeLog">
+        <p>> [API] Indent #1042 Placed</p>
+        <p>> [DB] State_Update: Awaiting_Chef</p>
+        <p>> [API] Chef_ID_44 Accepted</p>
+        <p>> [Geo] Pinging radius (3km)...</p>
+        <p class="text-emerald-500">> [Match] Courier_ID_09 Assigned</p>
+      </div>
     </div>
-    <div class="flex flex-wrap justify-center gap-2 mb-6">
-        <span class="text-slate-600 text-xs self-center tracking-widest mr-1">ONBOARD →</span>
-        <button onclick="switchView('onboard-consumer')" id="btn-onboard-consumer" class="role-btn px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 font-medium transition-all text-xs border border-slate-700">👤 Consumer</button>
-        <button onclick="switchView('onboard-chef')"     id="btn-onboard-chef"     class="role-btn px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 font-medium transition-all text-xs border border-slate-700">👨‍🍳 Chef</button>
-        <button onclick="switchView('onboard-courier')"  id="btn-onboard-courier"  class="role-btn px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 font-medium transition-all text-xs border border-slate-700">🛵 Courier</button>
+  </div>
+
+  <!-- ── Consumer Dashboard ── -->
+  <div id="view-consumer" class="app-view hidden flex-1 p-4 flex flex-col overflow-hidden">
+    <div class="flex justify-between items-center mt-2 mb-3 flex-shrink-0">
+      <h2 class="text-2xl font-bold text-white" data-i18n="con-title">Discovery</h2>
+      <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs border border-slate-600">VT</div>
     </div>
-
-    <!-- Phone mockup -->
-    <div class="w-[380px] bg-slate-900 rounded-[2.5rem] shadow-2xl border-[8px] border-slate-800 overflow-hidden relative flex flex-col" style="height:750px;">
-        <div class="h-6 w-full flex justify-between items-center px-6 mt-2 opacity-50 text-[10px] font-bold flex-shrink-0">
-            <span id="statusTime">9:41</span>
-            <div class="flex gap-1"><span>5G</span><span>100%</span></div>
-        </div>
-
-        <!-- Platform Hub -->
-        <div id="view-home" class="app-view flex-1 p-6 flex flex-col overflow-y-auto no-scrollbar">
-            <h2 class="text-xl font-bold text-white mb-6">System Status</h2>
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400">Active Indents</p><p class="text-2xl font-bold text-emerald-400 mt-1">14</p></div>
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400">Online Chefs</p><p class="text-2xl font-bold text-white mt-1">6</p></div>
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400">Active Couriers</p><p class="text-2xl font-bold text-white mt-1">8</p></div>
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-xs text-slate-400">Database Ping</p><p class="text-2xl font-bold text-emerald-400 mt-1">12ms</p></div>
-            </div>
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex-1">
-                <h3 class="text-sm font-bold text-slate-300 mb-3">Live Webhook Log</h3>
-                <div class="space-y-2 text-xs font-mono text-slate-400" id="homeLog">
-                    <p>> [API] Indent #1042 Placed</p>
-                    <p>> [DB] State_Update: Awaiting_Chef</p>
-                    <p>> [API] Chef_ID_44 Accepted</p>
-                    <p>> [Geo] Pinging radius (3km)...</p>
-                    <p class="text-emerald-500">> [Match] Courier_ID_09 Assigned</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Consumer Dashboard -->
-        <div id="view-consumer" class="app-view hidden flex-1 p-4 flex flex-col overflow-hidden">
-            <div class="flex justify-between items-center mt-2 mb-3 flex-shrink-0">
-                <h2 class="text-2xl font-bold text-white">Discovery</h2>
-                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs border border-slate-600">VT</div>
-            </div>
-            <div class="flex items-center gap-2 mb-4 flex-shrink-0">
-                <div class="relative flex-1">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
-                    <input type="text" class="block w-full pl-10 pr-3 py-2.5 border border-slate-700 rounded-full text-sm bg-slate-800 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500" placeholder="Search dishes, chefs...">
-                </div>
-            </div>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-2 flex-shrink-0">
-                <span class="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer">All</span>
-                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Near & Fast ⚡</span>
-                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Under €10 💸</span>
-                <span class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer">LEAD Member ★</span>
-                <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700">Previously Ordered 🔄</span>
-            </div>
-            <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-4">
-                <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
-                    <div class="absolute top-2 left-2 bg-slate-900/80 px-2 py-1 rounded text-[10px] font-bold text-emerald-400 z-10 border border-emerald-500/30">Under €10</div>
-                    <div class="h-28 bg-gradient-to-br from-slate-700 to-slate-800 w-full flex items-center justify-center text-3xl">🥙</div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-1"><h3 class="font-bold text-white">Dom Bakery Classic</h3><span class="font-bold text-emerald-400">€9</span></div>
-                        <p class="text-xs text-slate-400 mb-3">Chef: Dom Bakery • ★ 4.9 • 1.2km ⚡</p>
-                        <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white">Add to Indent</button>
-                    </div>
-                </div>
-                <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
-                    <div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold z-10">LEAD Member Special</div>
-                    <div class="h-28 bg-gradient-to-br from-slate-700 to-slate-800 w-full flex items-center justify-center text-3xl">🥗</div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-1"><h3 class="font-bold text-white">Nordic Protein Bowl</h3><div class="text-right"><span class="text-xs text-slate-400 line-through mr-1">€18</span><span class="font-bold text-amber-400">€14</span></div></div>
-                        <p class="text-xs text-slate-400 mb-3">Chef: Juuso • ★ 4.8</p>
-                        <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white">Add to Indent</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chef Dashboard -->
-        <div id="view-chef" class="app-view hidden flex-1 p-4 flex flex-col bg-slate-900 overflow-y-auto no-scrollbar">
-            <h2 class="text-2xl font-bold text-white mb-2 mt-2">Active Pipeline</h2>
-            <p class="text-xs text-emerald-500 mb-6 font-mono">Status: ONLINE & ACCEPTING</p>
-            <div class="space-y-4">
-                <div class="bg-slate-800 rounded-xl p-4 border border-emerald-500/30 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                    <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1042</span><span class="text-xs font-bold text-emerald-400">Just Now</span></div>
-                    <h3 class="font-bold text-white mb-1">2x Dom Bakery Classic</h3>
-                    <p class="text-xs text-slate-400 mb-4">Value: €24.00</p>
-                    <button class="w-full bg-emerald-600 py-3 rounded-lg text-sm font-bold text-white">Accept & Prep</button>
-                </div>
-                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 relative overflow-hidden opacity-60">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
-                    <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1041</span><span class="text-xs font-bold text-amber-400">Prepping</span></div>
-                    <h3 class="font-bold text-white mb-1">1x Keto Power Steak</h3>
-                    <button class="w-full bg-slate-700 py-2 rounded-lg text-sm font-bold text-white mt-2">Mark Ready for Courier</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Courier Dashboard -->
-        <div id="view-courier" class="app-view hidden flex-1 p-4 flex flex-col relative overflow-hidden">
-            <div class="absolute inset-0 bg-grid opacity-20"></div>
-            <div class="relative z-10 flex flex-col h-full">
-                <div class="flex justify-between items-center mt-2 mb-8">
-                    <h2 class="text-2xl font-bold text-white">Radar</h2>
-                    <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><span class="text-xs font-bold text-emerald-500">Online</span></div>
-                </div>
-                <div class="flex-1 flex items-center justify-center relative">
-                    <div class="absolute w-32 h-32 bg-emerald-500/10 rounded-full flex items-center justify-center">
-                        <div class="w-24 h-24 bg-emerald-500/20 rounded-full radar-ping"></div>
-                        <div class="w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] z-10"></div>
-                    </div>
-                </div>
-                <div class="bg-slate-800 rounded-2xl p-5 border border-emerald-500/50 shadow-2xl mt-auto">
-                    <p class="text-xs font-bold text-emerald-400 mb-1">NEW BOUNTY DETECTED</p>
-                    <h3 class="text-lg font-bold text-white mb-1">Dom Bakery → Länsimäki</h3>
-                    <div class="flex justify-between items-center mb-4"><p class="text-sm text-slate-400">2.4 km total route</p><p class="text-xl font-bold text-white">€8.50</p></div>
-                    <button class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-sm font-bold text-white">Accept Dispatch</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Live Dispatch -->
-        <div id="view-dispatch" class="app-view hidden flex-1 flex flex-col relative bg-slate-900 overflow-hidden">
-            <div class="flex-1 bg-grid relative">
-                <div class="absolute top-[30%] left-[20%] w-[60%] h-[40%] border-l-4 border-b-4 border-dashed border-emerald-500/40 rounded-bl-3xl"></div>
-                <div class="absolute top-[28%] left-[18%] flex flex-col items-center"><div class="w-4 h-4 bg-white rounded-full z-10 border-2 border-slate-900"></div><span class="text-[10px] font-bold text-white bg-slate-800 px-1 rounded mt-1">Pickup</span></div>
-                <div class="absolute top-[68%] left-[78%] flex flex-col items-center"><div class="w-4 h-4 bg-emerald-500 rounded-full z-10 border-2 border-slate-900"></div><span class="text-[10px] font-bold text-emerald-400 bg-slate-800 px-1 rounded mt-1">Dropoff</span></div>
-                <div class="absolute top-[50%] left-[20%] animate-pulse"><div class="w-6 h-6 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.8)] border-2 border-white flex items-center justify-center"><div class="w-2 h-2 bg-white rounded-full"></div></div></div>
-            </div>
-            <div class="bg-slate-800 p-5 border-t border-slate-700 rounded-t-3xl z-20">
-                <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-white">Courier in Transit</h3><span class="text-emerald-400 font-bold">ETA: 12 mins</span></div>
-                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 w-[45%] h-full"></div></div>
-                <div class="flex items-center gap-3 mt-4"><div class="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center text-xs">🚗</div><div><p class="text-sm font-bold text-white">Courier ID: 09</p><p class="text-xs text-slate-400">On route to dropoff</p></div></div>
-            </div>
-        </div>
-
-        <!-- ════ ONBOARDING: CONSUMER ════ -->
-        <div id="view-onboard-consumer" class="app-view hidden flex-1 flex flex-col overflow-hidden">
-            <div id="oc-step-1" class="ob-step flex flex-col h-full p-5">
-                <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="oc-dots-1"></div><span class="text-xs text-slate-500 font-mono">CONSUMER ONBOARDING</span></div>
-                <div class="flex-1 flex flex-col justify-center items-center text-center">
-                    <div class="w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(16,185,129,0.15)]">🍽️</div>
-                    <h2 class="text-2xl font-bold text-white mb-3 leading-tight">Find food that<br>fuels your goals.</h2>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">Discover home-cooked meals from local chefs, filtered by outcome — not just cuisine.</p>
-                    <div class="space-y-2 w-full text-left mb-8">
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-emerald-400">✓</span> Real chefs in your neighbourhood</div>
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-emerald-400">✓</span> Filter by protein, price, or ETA</div>
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-emerald-400">✓</span> Membership perks & exclusive offers</div>
-                    </div>
-                </div>
-                <button onclick="ocNext(2)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-emerald-900/40">Get Started →</button>
-            </div>
-            <div id="oc-step-2" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oc-dots-2"></div><button onclick="ocBack(1)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">What are your goals?</h2>
-                <p class="text-xs text-slate-400 mb-5">We'll personalise your feed. Pick all that apply.</p>
-                <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2">DIETARY PREFERENCES</p>
-                <div class="flex flex-wrap gap-2 mb-5">
-                    <span class="chip" onclick="toggleChip(this)">💪 High Protein</span>
-                    <span class="chip" onclick="toggleChip(this)">🌱 Vegan</span>
-                    <span class="chip" onclick="toggleChip(this)">🥑 Keto / Low Carb</span>
-                    <span class="chip" onclick="toggleChip(this)">🌾 Gluten Free</span>
-                    <span class="chip" onclick="toggleChip(this)">🍃 Vegetarian</span>
-                    <span class="chip" onclick="toggleChip(this)">🧘 Clean Eating</span>
-                </div>
-                <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2">DELIVERY PRIORITY</p>
-                <div class="flex flex-wrap gap-2 mb-5">
-                    <span class="chip" onclick="toggleChip(this)">⚡ Super Fast (under 20 min)</span>
-                    <span class="chip" onclick="toggleChip(this)">💶 Best Value</span>
-                    <span class="chip" onclick="toggleChip(this)">⭐ Top Rated Chefs</span>
-                    <span class="chip" onclick="toggleChip(this)">🗓️ Schedule Ahead</span>
-                </div>
-                <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2">PRICE RANGE</p>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="chip" onclick="toggleChip(this)">€ Under €8</span>
-                    <span class="chip" onclick="toggleChip(this)">€€ €8–€15</span>
-                    <span class="chip" onclick="toggleChip(this)">€€€ €15+</span>
-                </div>
-                <button onclick="ocNext(3)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all mt-auto flex-shrink-0">Continue →</button>
-            </div>
-            <div id="oc-step-3" class="ob-step hidden flex flex-col h-full p-5">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oc-dots-3"></div><button onclick="ocBack(2)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <div class="flex-1 flex flex-col justify-center items-center text-center">
-                    <div class="relative w-28 h-28 mb-6"><div class="absolute inset-0 bg-blue-500/10 rounded-full flex items-center justify-center"><div class="absolute inset-3 bg-blue-500/15 rounded-full"></div><div class="text-4xl z-10">📍</div></div><div class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse"><span class="text-xs">✓</span></div></div>
-                    <h2 class="text-xl font-bold text-white mb-3">Allow Location Access</h2>
-                    <p class="text-sm text-slate-400 mb-2 leading-relaxed">LEAD uses your real-time location to surface chefs within your delivery radius and show accurate ETAs.</p>
-                    <p class="text-xs text-slate-500 mb-8">Your location is only used while the app is active. Never sold to third parties.</p>
-                    <div class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mb-3 text-left"><p class="text-xs font-bold text-white mb-1">📌 Helsinki, Kallio</p><p class="text-xs text-slate-400">Mock geo · 60.1833°N, 24.9497°E</p></div>
-                    <div class="progress-bar w-full mb-6"><div class="progress-fill" style="width:70%"></div></div>
-                </div>
-                <div class="space-y-2 flex-shrink-0">
-                    <button onclick="ocNext(4)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all">Allow Location ✓</button>
-                    <button onclick="ocNext(4)" class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-sm font-medium text-slate-400 transition-all">Not Now</button>
-                </div>
-            </div>
-            <div id="oc-step-4" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oc-dots-4"></div><button onclick="ocBack(3)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Add a Payment Method</h2>
-                <p class="text-xs text-slate-400 mb-5">Secured by Stripe. Card details encrypted and never stored on LEAD servers.</p>
-                <div class="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-5 mb-5 border border-slate-600 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8"></div>
-                    <div class="text-xs text-slate-400 mb-6">LEAD Pay Card</div>
-                    <div class="text-lg font-mono font-bold text-white mb-4 tracking-widest">•••• •••• •••• 4242</div>
-                    <div class="flex justify-between text-xs text-slate-400"><span>Cardholder Name</span><span>MM / YY</span></div>
-                </div>
-                <div class="space-y-3 mb-5">
-                    <input type="text" placeholder="Card number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono">
-                    <div class="flex gap-3">
-                        <input type="text" placeholder="MM / YY" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-                        <input type="text" placeholder="CVV" class="w-20 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <input type="text" placeholder="Name on card" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-                </div>
-                <button onclick="ocNext(5)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all">Save & Continue →</button>
-                <button onclick="ocNext(5)" class="w-full text-slate-500 text-xs py-2 hover:text-slate-300 transition-all">Skip for now</button>
-            </div>
-            <div id="oc-step-5" class="ob-step hidden flex flex-col h-full p-5">
-                <div class="flex justify-between items-center mb-6 flex-shrink-0"><div class="flex gap-1" id="oc-dots-5"></div></div>
-                <div class="flex-1 flex flex-col justify-center items-center text-center">
-                    <div class="success-pop w-24 h-24 rounded-full bg-emerald-500/15 border-2 border-emerald-500 flex items-center justify-center text-5xl mb-6 shadow-[0_0_40px_rgba(16,185,129,0.25)]">✅</div>
-                    <h2 class="text-2xl font-bold text-white mb-3">You're all set!</h2>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">Welcome to LEAD. Your profile is ready. Start discovering chefs near you right now.</p>
-                    <div class="w-full bg-slate-800 border border-emerald-500/30 rounded-xl p-4 text-left mb-6">
-                        <p class="text-xs font-bold text-emerald-400 mb-2">YOUR PROFILE SUMMARY</p>
-                        <div class="space-y-1 text-xs text-slate-400">
-                            <p>🌱 Preferences: Vegan, High Protein</p>
-                            <p>📍 Location: Helsinki, Kallio</p>
-                            <p>💳 Payment: Card ending •4242</p>
-                            <p>⭐ Membership: LEAD Basic (Free)</p>
-                        </div>
-                    </div>
-                </div>
-                <button onclick="registerConsumer(); switchView('consumer')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-emerald-900/40">Start Discovering 🍽️</button>
-            </div>
-        </div>
-
-        <!-- ════ ONBOARDING: CHEF ════ -->
-        <div id="view-onboard-chef" class="app-view hidden flex-1 flex flex-col overflow-hidden">
-            <div id="och-step-1" class="ob-step flex flex-col h-full p-5">
-                <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="och-dots-1"></div><span class="text-xs text-slate-500 font-mono">CHEF ONBOARDING</span></div>
-                <div class="flex-1 flex flex-col justify-center items-center text-center">
-                    <div class="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(245,158,11,0.15)]">👨‍🍳</div>
-                    <h2 class="text-2xl font-bold text-white mb-3 leading-tight">Cook. Earn.<br>Thrive.</h2>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">Turn your kitchen and your recipes into a real income stream. LEAD connects you directly to hungry customers nearby.</p>
-                    <div class="space-y-2 w-full text-left mb-8">
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-amber-400">✓</span> Set your own menu, hours & prices</div>
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-amber-400">✓</span> Payouts directly to your bank</div>
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-amber-400">✓</span> LEAD handles logistics & payments</div>
-                    </div>
-                </div>
-                <button onclick="ochNext(2)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all shadow-lg shadow-amber-900/30">Apply as Chef →</button>
-            </div>
-            <div id="och-step-2" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-2"></div><button onclick="ochBack(1)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Tell us about your kitchen</h2>
-                <p class="text-xs text-slate-400 mb-5">This is what customers will see on your public chef profile.</p>
-                <div class="space-y-3 mb-5">
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">KITCHEN / BRAND NAME</label><input id="chefBrandName" type="text" placeholder="e.g. Aino's Nordic Kitchen" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"></div>
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">YOUR FULL NAME</label><input id="chefFullName" type="text" placeholder="Legal name for KYC" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"></div>
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">SHORT BIO</label><textarea placeholder="Tell customers who you are..." class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 resize-none" rows="3"></textarea></div>
-                </div>
-                <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2">KITCHEN TYPE</p>
-                <div class="flex gap-2 mb-5"><span class="chip" onclick="toggleChip(this)">🏠 Home Kitchen</span><span class="chip" onclick="toggleChip(this)">🍳 Commercial</span><span class="chip" onclick="toggleChip(this)">🚚 Ghost Kitchen</span></div>
-                <button onclick="ochNext(3)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all mt-2">Continue →</button>
-            </div>
-            <div id="och-step-3" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-3"></div><button onclick="ochBack(2)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Your cuisine & specialties</h2>
-                <p class="text-xs text-slate-400 mb-4">Pick what your kitchen does best.</p>
-                <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2">CUISINE STYLES</p>
-                <div class="flex flex-wrap gap-2 mb-4" id="cuisineTags">
-                    <span class="cuisine-tag" onclick="toggleCuisine(this)">🇫🇮 Nordic</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇳 Indian</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇹 Italian</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇯🇵 Japanese</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🥗 Health Bowls</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🍞 Bakery</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🥩 BBQ / Grill</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🌮 Street Food</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🍜 Asian Fusion</span>
-                </div>
-                <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2">DIETARY SPECIALISATIONS</p>
-                <div class="flex flex-wrap gap-2 mb-5"><span class="chip" onclick="toggleChip(this)">🌱 Vegan-Friendly</span><span class="chip" onclick="toggleChip(this)">💪 High Protein</span><span class="chip" onclick="toggleChip(this)">🌾 Gluten Free</span><span class="chip" onclick="toggleChip(this)">🥑 Keto</span></div>
-                <button onclick="ochNext(4)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all mt-4">Continue →</button>
-            </div>
-            <div id="och-step-4" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-4"></div><button onclick="ochBack(3)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Identity & Certification</h2>
-                <p class="text-xs text-slate-400 mb-1">Required for all chefs. Documents reviewed within 24h.</p>
-                <div class="flex items-center gap-1.5 mb-5"><span class="text-xs text-emerald-400">🔒</span><span class="text-xs text-emerald-400">End-to-end encrypted via Onfido</span></div>
-                <div class="space-y-3">
-                    <div class="upload-btn" onclick="mockUpload(this,'National ID / Passport')"><span class="u-icon">🪪</span><div><div class="u-text font-bold">National ID or Passport</div><div class="u-text">JPG, PNG or PDF · max 5MB</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                    <div class="upload-btn" onclick="mockUpload(this,'Food Handler Certificate')"><span class="u-icon">📋</span><div><div class="u-text font-bold">Food Handler Certificate</div><div class="u-text">Hygiene pass or equivalent</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                    <div class="upload-btn" onclick="mockUpload(this,'Kitchen Photo')"><span class="u-icon">📸</span><div><div class="u-text font-bold">Kitchen Photo</div><div class="u-text">Clear photo of your cooking space</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                    <div class="upload-btn" onclick="mockUpload(this,'Tax / Business ID')"><span class="u-icon">🏛️</span><div><div class="u-text font-bold">Tax ID or Business ID</div><div class="u-text">Finnish Y-tunnus or equivalent</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                </div>
-                <button onclick="ochNext(5)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all mt-4">Submit for Review →</button>
-            </div>
-            <div id="och-step-5" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-5"></div><button onclick="ochBack(4)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Set your availability</h2>
-                <p class="text-xs text-slate-400 mb-4">Choose when you're open to orders.</p>
-                <div id="avail-grid" class="mb-4"></div>
-                <div class="toggle-wrap bg-slate-800 rounded-xl p-3 border border-slate-700 mb-3"><div><p class="text-sm font-bold text-white">Instant Accept Mode</p><p class="text-xs text-slate-400">Auto-accept without manual review</p></div><label class="toggle"><input type="checkbox"><span class="slider"></span></label></div>
-                <div class="toggle-wrap bg-slate-800 rounded-xl p-3 border border-slate-700 mb-4"><div><p class="text-sm font-bold text-white">Scheduled Orders</p><p class="text-xs text-slate-400">Accept orders 2+ hours in advance</p></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
-                <button onclick="ochNext(6)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all">Save & Continue →</button>
-            </div>
-            <div id="och-step-6" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-6"></div><button onclick="ochBack(5)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Payout Setup</h2>
-                <p class="text-xs text-slate-400 mb-4">Payouts every Monday to your bank.</p>
-                <div class="space-y-3 mb-4">
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">IBAN</label><input type="text" placeholder="FI12 3456 7890 1234 56" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"></div>
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">ACCOUNT HOLDER NAME</label><input type="text" placeholder="As on your bank account" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"></div>
-                </div>
-                <div class="bg-slate-800 border border-amber-500/20 rounded-xl p-4 mb-4">
-                    <p class="text-xs font-bold text-amber-400 mb-2">💰 LEAD CHEF EARNINGS MODEL</p>
-                    <div class="space-y-1 text-xs text-slate-400">
-                        <div class="flex justify-between"><span>Platform commission</span><span class="text-white">12%</span></div>
-                        <div class="flex justify-between"><span>Payment processing</span><span class="text-white">1.5%</span></div>
-                        <div class="flex justify-between border-t border-slate-700 pt-1 mt-1"><span class="text-emerald-400 font-bold">You keep</span><span class="text-emerald-400 font-bold">86.5%</span></div>
-                    </div>
-                </div>
-                <button onclick="ochGoLive()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-amber-900/40">🚀 Submit Application</button>
-            </div>
-            <div id="och-step-7" class="ob-step hidden flex flex-col h-full p-5">
-                <div class="flex-1 flex flex-col justify-center items-center text-center">
-                    <div class="success-pop w-24 h-24 rounded-full bg-amber-500/15 border-2 border-amber-500 flex items-center justify-center text-5xl mb-6 shadow-[0_0_40px_rgba(245,158,11,0.2)]">🎉</div>
-                    <h2 class="text-2xl font-bold text-white mb-3">Application Submitted!</h2>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">KYC documents reviewed within 24 hours. You'll be emailed once approved to go live.</p>
-                    <div class="w-full bg-slate-800 border border-amber-500/20 rounded-xl p-4 text-left mb-6">
-                        <p class="text-xs font-bold text-amber-400 mb-2">APPLICATION STATUS</p>
-                        <div class="space-y-2 text-xs">
-                            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span class="text-slate-300">Profile created</span></div>
-                            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span class="text-slate-300">Cuisine & availability set</span></div>
-                            <div class="flex items-center gap-2"><span class="text-amber-400">⏳</span><span class="text-slate-300">KYC review — <em>pending</em></span></div>
-                            <div class="flex items-center gap-2"><span class="text-slate-500">○</span><span class="text-slate-500">Chef profile published</span></div>
-                        </div>
-                    </div>
-                    <p class="text-xs text-emerald-400 font-mono">✓ Data sent to Admin Panel</p>
-                </div>
-                <button onclick="switchView('chef')" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all">View Chef Dashboard</button>
-            </div>
-        </div>
-
-        <!-- ════ ONBOARDING: COURIER ════ -->
-        <div id="view-onboard-courier" class="app-view hidden flex-1 flex flex-col overflow-hidden">
-            <div id="oor-step-1" class="ob-step flex flex-col h-full p-5">
-                <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="oor-dots-1"></div><span class="text-xs text-slate-500 font-mono">COURIER ONBOARDING</span></div>
-                <div class="flex-1 flex flex-col justify-center items-center text-center">
-                    <div class="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(59,130,246,0.15)]">🛵</div>
-                    <h2 class="text-2xl font-bold text-white mb-3 leading-tight">Deliver. Earn.<br>Anywhere.</h2>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">Accept food dispatch bounties in your area. Work when you want, earn what you deserve.</p>
-                    <div class="space-y-2 w-full text-left mb-8">
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-blue-400">✓</span> Real-time geo-radius matching</div>
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-blue-400">✓</span> Transparent bounty pricing</div>
-                        <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-blue-400">✓</span> Weekly payouts, no hidden cuts</div>
-                    </div>
-                </div>
-                <button onclick="oorNext(2)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-blue-900/40">Apply as Courier →</button>
-            </div>
-            <div id="oor-step-2" class="ob-step hidden flex flex-col h-full p-5">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-2"></div><button onclick="oorBack(1)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">What's your vehicle?</h2>
-                <p class="text-xs text-slate-400 mb-6">Vehicle type determines dispatch eligibility and bounty tier.</p>
-                <div class="flex gap-3 mb-6" id="vehicleCards">
-                    <div class="vehicle-card" onclick="selectVehicle(this,'bicycle')"><span class="vc-icon">🚴</span><span class="vc-label">Bicycle</span></div>
-                    <div class="vehicle-card" onclick="selectVehicle(this,'scooter')"><span class="vc-icon">🛵</span><span class="vc-label">Scooter</span></div>
-                    <div class="vehicle-card" onclick="selectVehicle(this,'car')"><span class="vc-icon">🚗</span><span class="vc-label">Car</span></div>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-6">
-                    <p class="text-[10px] font-bold text-slate-500 tracking-wider mb-3">VEHICLE TIER COMPARISON</p>
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between text-slate-400"><span>🚴 Bicycle</span><span class="text-white">Eco tier · up to 3km</span></div>
-                        <div class="flex justify-between text-slate-400"><span>🛵 Scooter</span><span class="text-blue-300">Standard · up to 8km</span></div>
-                        <div class="flex justify-between text-slate-400"><span>🚗 Car</span><span class="text-amber-300">Premium · up to 15km</span></div>
-                    </div>
-                </div>
-                <button onclick="oorNext(3)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all mt-auto">Continue →</button>
-            </div>
-            <div id="oor-step-3" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-3"></div><button onclick="oorBack(2)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Personal Details</h2>
-                <p class="text-xs text-slate-400 mb-5">Used to verify your identity and process payouts.</p>
-                <div class="space-y-3 mb-4">
-                    <div class="flex gap-3">
-                        <div class="flex-1"><label class="text-[10px] font-bold text-slate-500 tracking-wider">FIRST NAME</label><input id="courierFirstName" type="text" placeholder="First" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"></div>
-                        <div class="flex-1"><label class="text-[10px] font-bold text-slate-500 tracking-wider">LAST NAME</label><input id="courierLastName" type="text" placeholder="Last" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"></div>
-                    </div>
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">PHONE NUMBER</label><input type="tel" placeholder="+358 40 123 4567" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"></div>
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">HOME ADDRESS</label><input type="text" placeholder="Street, City, Postcode" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"></div>
-                </div>
-                <button onclick="oorNext(4)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all">Continue →</button>
-            </div>
-            <div id="oor-step-4" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-4"></div><button onclick="oorBack(3)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Document Verification</h2>
-                <div class="flex items-center gap-1.5 mb-4"><span class="text-xs text-blue-400">🔒</span><span class="text-xs text-blue-400">256-bit encrypted · Onfido KYC</span></div>
-                <div class="space-y-3 mb-5">
-                    <div class="upload-btn" onclick="mockUpload(this,'National ID / Passport')"><span class="u-icon">🪪</span><div><div class="u-text font-bold">National ID or Passport</div><div class="u-text">Front + back if applicable</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                    <div class="upload-btn" onclick="mockUpload(this,'Driving Licence')"><span class="u-icon">🚗</span><div><div class="u-text font-bold">Driving Licence</div><div class="u-text">Required for scooter & car tiers</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                    <div class="upload-btn" onclick="mockUpload(this,'Live Selfie Check')"><span class="u-icon">🤳</span><div><div class="u-text font-bold">Live Selfie Check</div><div class="u-text">Hold ID next to your face</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                    <div class="upload-btn" onclick="mockUpload(this,'Vehicle Insurance')"><span class="u-icon">🛡️</span><div><div class="u-text font-bold">Vehicle Insurance</div><div class="u-text">Valid policy certificate</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
-                </div>
-                <button onclick="oorNext(5)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all">Submit Documents →</button>
-            </div>
-            <div id="oor-step-5" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
-                <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-5"></div><button onclick="oorBack(4)" class="text-slate-500 text-xs hover:text-slate-300">← Back</button></div>
-                <h2 class="text-lg font-bold text-white mt-4 mb-1">Payout Setup</h2>
-                <p class="text-xs text-slate-400 mb-4">Earnings paid out every Monday.</p>
-                <div class="space-y-3 mb-4">
-                    <div><label class="text-[10px] font-bold text-slate-500 tracking-wider">IBAN</label><input type="text" placeholder="FI12 3456 7890 1234 56" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"></div>
-                </div>
-                <div class="bg-slate-800 border border-blue-500/20 rounded-xl p-4 mb-4">
-                    <p class="text-xs font-bold text-blue-400 mb-2">📊 BOUNTY STRUCTURE</p>
-                    <div class="space-y-1.5 text-xs"><div class="flex justify-between text-slate-400"><span>Base delivery rate</span><span class="text-white">€3.50 / trip</span></div><div class="flex justify-between text-slate-400"><span>Per km bonus</span><span class="text-white">+€0.45 / km</span></div><div class="flex justify-between text-slate-400 border-t border-slate-700 pt-1.5 mt-1.5"><span>Avg trip (Helsinki)</span><span class="text-emerald-400 font-bold">~€7.20</span></div></div>
-                </div>
-                <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2">PREFERRED ZONE (KM)</p>
-                <div class="flex gap-2 mb-4" id="zoneSelector">
-                    <div class="zone-ring" onclick="selectZone(this)">1</div><div class="zone-ring chosen" onclick="selectZone(this)">3</div><div class="zone-ring" onclick="selectZone(this)">5</div><div class="zone-ring" onclick="selectZone(this)">8</div><div class="zone-ring" onclick="selectZone(this)">10</div><div class="zone-ring" onclick="selectZone(this)">15</div>
-                </div>
-                <button onclick="registerCourier(); oorNext(6)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all">Submit Application →</button>
-            </div>
-            <div id="oor-step-6" class="ob-step hidden flex flex-col h-full p-5">
-                <div class="flex-1 flex flex-col justify-center items-center text-center">
-                    <div class="success-pop relative w-24 h-24 mb-6"><div class="absolute inset-0 bg-blue-500/15 rounded-full border-2 border-blue-500 shadow-[0_0_40px_rgba(59,130,246,0.25)] flex items-center justify-center text-5xl">✅</div><div class="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-500 rounded-full border-2 border-slate-900 flex items-center justify-center text-sm">🛵</div></div>
-                    <h2 class="text-2xl font-bold text-white mb-3">Application Received!</h2>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">You'll be verified within 24 hours. Once approved, go online and start accepting bounties.</p>
-                    <div class="w-full bg-slate-800 border border-blue-500/20 rounded-xl p-4 text-left mb-4">
-                        <p class="text-xs font-bold text-blue-400 mb-2">COURIER APPLICATION STATUS</p>
-                        <div class="space-y-2 text-xs">
-                            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span class="text-slate-300">Vehicle registered</span></div>
-                            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span class="text-slate-300">Documents submitted</span></div>
-                            <div class="flex items-center gap-2"><span class="text-amber-400">⏳</span><span class="text-slate-300">KYC review — <em>pending</em></span></div>
-                            <div class="flex items-center gap-2"><span class="text-slate-500">○</span><span class="text-slate-500">Bounty radar activated</span></div>
-                        </div>
-                    </div>
-                    <p class="text-xs text-emerald-400 font-mono">✓ Data sent to Admin Panel</p>
-                </div>
-                <button onclick="switchView('courier')" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all">View Courier Dashboard</button>
-            </div>
-        </div>
-    </div><!-- /phone -->
-
-    <!-- Admin toast -->
-    <div id="adminToast"></div>
-
-    <div class="mt-6 flex flex-wrap justify-center gap-4 text-xs text-slate-500">
-        <span>● <span class="text-emerald-500">Green</span> = Consumer</span>
-        <span>● <span class="text-amber-500">Amber</span> = Chef</span>
-        <span>● <span class="text-blue-500">Blue</span> = Courier</span>
+    <div class="flex items-center gap-2 mb-4 flex-shrink-0">
+      <div class="relative flex-1">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+        <input type="text" data-i18n-ph="con-search" placeholder="Search dishes, chefs..." class="block w-full pl-10 pr-3 py-2.5 border border-slate-700 rounded-full text-sm bg-slate-800 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500">
+      </div>
     </div>
+    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-2 flex-shrink-0">
+      <span class="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer" data-i18n="con-f-all">All</span>
+      <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700" data-i18n="con-f-near">Near &amp; Fast ⚡</span>
+      <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700" data-i18n="con-f-under">Under €10 💸</span>
+      <span class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-xs font-bold whitespace-nowrap cursor-pointer" data-i18n="con-f-member">LEAD Member ★</span>
+      <span class="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:bg-slate-700" data-i18n="con-f-prev">Previously Ordered 🔄</span>
+    </div>
+    <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-4">
+      <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
+        <div class="absolute top-2 left-2 bg-slate-900/80 px-2 py-1 rounded text-[10px] font-bold text-emerald-400 z-10 border border-emerald-500/30" data-i18n="con-f-under">Under €10</div>
+        <div class="h-28 bg-gradient-to-br from-slate-700 to-slate-800 w-full flex items-center justify-center text-3xl">🥙</div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-1"><h3 class="font-bold text-white">Dom Bakery Classic</h3><span class="font-bold text-emerald-400">€9</span></div>
+          <p class="text-xs text-slate-400 mb-3">Chef: Dom Bakery • ★ 4.9 • 1.2km ⚡</p>
+          <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
+        </div>
+      </div>
+      <div class="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 relative">
+        <div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold z-10" data-i18n="con-f-member">LEAD Member Special</div>
+        <div class="h-28 bg-gradient-to-br from-slate-700 to-slate-800 w-full flex items-center justify-center text-3xl">🥗</div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-1"><h3 class="font-bold text-white">Nordic Protein Bowl</h3><div class="text-right"><span class="text-xs text-slate-400 line-through mr-1">€18</span><span class="font-bold text-amber-400">€14</span></div></div>
+          <p class="text-xs text-slate-400 mb-3">Chef: Juuso • ★ 4.8</p>
+          <button class="w-full bg-slate-700 hover:bg-emerald-600 transition-colors py-2 rounded-lg text-sm font-bold text-white" data-i18n="con-add">Add to Indent</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chef Dashboard ── -->
+  <div id="view-chef" class="app-view hidden flex-1 p-4 flex flex-col bg-slate-900 overflow-y-auto no-scrollbar">
+    <h2 class="text-2xl font-bold text-white mb-2 mt-2" data-i18n="chef-title">Active Pipeline</h2>
+    <p class="text-xs text-emerald-500 mb-6 font-mono" data-i18n="chef-status">Status: ONLINE &amp; ACCEPTING</p>
+    <div class="space-y-4">
+      <div class="bg-slate-800 rounded-xl p-4 border border-emerald-500/30 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+        <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1042</span><span class="text-xs font-bold text-emerald-400" data-i18n="chef-justnow">Just Now</span></div>
+        <h3 class="font-bold text-white mb-1">2x Dom Bakery Classic</h3>
+        <p class="text-xs text-slate-400 mb-4"><span data-i18n="chef-value">Value</span>: €24.00</p>
+        <button class="w-full bg-emerald-600 py-3 rounded-lg text-sm font-bold text-white" data-i18n="chef-accept">Accept &amp; Prep</button>
+      </div>
+      <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 relative overflow-hidden opacity-60">
+        <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+        <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1041</span><span class="text-xs font-bold text-amber-400" data-i18n="chef-prepping">Prepping</span></div>
+        <h3 class="font-bold text-white mb-1">1x Keto Power Steak</h3>
+        <button class="w-full bg-slate-700 py-2 rounded-lg text-sm font-bold text-white mt-2" data-i18n="chef-markready">Mark Ready for Courier</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Courier Dashboard ── -->
+  <div id="view-courier" class="app-view hidden flex-1 p-4 flex flex-col relative overflow-hidden">
+    <div class="absolute inset-0 bg-grid opacity-20"></div>
+    <div class="relative z-10 flex flex-col h-full">
+      <div class="flex justify-between items-center mt-2 mb-8">
+        <h2 class="text-2xl font-bold text-white" data-i18n="cour-radar">Radar</h2>
+        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><span class="text-xs font-bold text-emerald-500" data-i18n="cour-online">Online</span></div>
+      </div>
+      <div class="flex-1 flex items-center justify-center relative">
+        <div class="absolute w-32 h-32 bg-emerald-500/10 rounded-full flex items-center justify-center">
+          <div class="w-24 h-24 bg-emerald-500/20 rounded-full radar-ping"></div>
+          <div class="w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] z-10"></div>
+        </div>
+      </div>
+      <div class="bg-slate-800 rounded-2xl p-5 border border-emerald-500/50 shadow-2xl mt-auto">
+        <p class="text-xs font-bold text-emerald-400 mb-1" data-i18n="cour-bounty">NEW BOUNTY DETECTED</p>
+        <h3 class="text-lg font-bold text-white mb-1">Dom Bakery → Länsimäki</h3>
+        <div class="flex justify-between items-center mb-4"><p class="text-sm text-slate-400" data-i18n="cour-route">2.4 km total route</p><p class="text-xl font-bold text-white">€8.50</p></div>
+        <button class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-sm font-bold text-white" data-i18n="cour-accept">Accept Dispatch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Live Dispatch ── -->
+  <div id="view-dispatch" class="app-view hidden flex-1 flex flex-col relative bg-slate-900 overflow-hidden">
+    <div class="flex-1 bg-grid relative">
+      <div class="absolute top-[30%] left-[20%] w-[60%] h-[40%] border-l-4 border-b-4 border-dashed border-emerald-500/40 rounded-bl-3xl"></div>
+      <div class="absolute top-[28%] left-[18%] flex flex-col items-center"><div class="w-4 h-4 bg-white rounded-full z-10 border-2 border-slate-900"></div><span class="text-[10px] font-bold text-white bg-slate-800 px-1 rounded mt-1" data-i18n="disp-pickup">Pickup</span></div>
+      <div class="absolute top-[68%] left-[78%] flex flex-col items-center"><div class="w-4 h-4 bg-emerald-500 rounded-full z-10 border-2 border-slate-900"></div><span class="text-[10px] font-bold text-emerald-400 bg-slate-800 px-1 rounded mt-1" data-i18n="disp-dropoff">Dropoff</span></div>
+      <div class="absolute top-[50%] left-[20%] animate-pulse"><div class="w-6 h-6 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.8)] border-2 border-white flex items-center justify-center"><div class="w-2 h-2 bg-white rounded-full"></div></div></div>
+    </div>
+    <div class="bg-slate-800 p-5 border-t border-slate-700 rounded-t-3xl z-20">
+      <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-white" data-i18n="disp-title">Courier in Transit</h3><span class="text-emerald-400 font-bold" data-i18n="disp-eta">ETA: 12 mins</span></div>
+      <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 w-[45%] h-full"></div></div>
+      <div class="flex items-center gap-3 mt-4"><div class="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center text-xs">🚗</div><div><p class="text-sm font-bold text-white" data-i18n="disp-courier-id">Courier ID: 09</p><p class="text-xs text-slate-400" data-i18n="disp-enroute">On route to dropoff</p></div></div>
+    </div>
+  </div>
+
+  <!-- ════════════════ ONBOARDING: CONSUMER ════════════════ -->
+  <div id="view-onboard-consumer" class="app-view hidden flex-1 flex flex-col overflow-hidden">
+    <!-- Step 1 -->
+    <div id="oc-step-1" class="ob-step flex flex-col h-full p-5">
+      <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="oc-dots-1"></div><span class="text-xs text-slate-500 font-mono" data-i18n="oc-badge">CONSUMER ONBOARDING</span></div>
+      <div class="flex-1 flex flex-col justify-center items-center text-center">
+        <div class="w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(16,185,129,0.15)]">🍽️</div>
+        <h2 class="text-2xl font-bold text-white mb-3 leading-tight" data-i18n="oc1-h">Find food that<br>fuels your goals.</h2>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="oc1-p">Discover home-cooked meals from local chefs, filtered by outcome — not just cuisine.</p>
+        <div class="space-y-2 w-full text-left mb-8">
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-emerald-400">✓</span> <span data-i18n="oc1-b1">Real chefs in your neighbourhood</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-emerald-400">✓</span> <span data-i18n="oc1-b2">Filter by protein, price, or ETA</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-emerald-400">✓</span> <span data-i18n="oc1-b3">Membership perks &amp; exclusive offers</span></div>
+        </div>
+      </div>
+      <button onclick="ocNext(2)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-emerald-900/40" data-i18n="oc1-btn">Get Started →</button>
+    </div>
+    <!-- Step 2 -->
+    <div id="oc-step-2" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oc-dots-2"></div><button onclick="ocBack(1)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="oc2-h">What are your goals?</h2>
+      <p class="text-xs text-slate-400 mb-5" data-i18n="oc2-p">We'll personalise your feed. Pick all that apply.</p>
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-diet-label">DIETARY PREFERENCES</p>
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-protein">💪 High Protein</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-vegan">🌱 Vegan</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-keto">🥑 Keto / Low Carb</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-gf">🌾 Gluten Free</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-veg">🍃 Vegetarian</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-clean">🧘 Clean Eating</span>
+      </div>
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-del-label">DELIVERY PRIORITY</p>
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-fast">⚡ Super Fast (under 20 min)</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-value">💶 Best Value</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-rated">⭐ Top Rated Chefs</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-sched">🗓️ Schedule Ahead</span>
+      </div>
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="oc2-price-label">PRICE RANGE</p>
+      <div class="flex flex-wrap gap-2 mb-6">
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p1">€ Under €8</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p2">€€ €8–€15</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-p3">€€€ €15+</span>
+      </div>
+      <button onclick="ocNext(3)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all mt-auto flex-shrink-0" data-i18n="btn-continue">Continue →</button>
+    </div>
+    <!-- Step 3 -->
+    <div id="oc-step-3" class="ob-step hidden flex flex-col h-full p-5">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oc-dots-3"></div><button onclick="ocBack(2)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <div class="flex-1 flex flex-col justify-center items-center text-center">
+        <div class="relative w-28 h-28 mb-6"><div class="absolute inset-0 bg-blue-500/10 rounded-full flex items-center justify-center"><div class="absolute inset-3 bg-blue-500/15 rounded-full"></div><div class="text-4xl z-10">📍</div></div><div class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse"><span class="text-xs">✓</span></div></div>
+        <h2 class="text-xl font-bold text-white mb-3" data-i18n="oc3-h">Allow Location Access</h2>
+        <p class="text-sm text-slate-400 mb-2 leading-relaxed" data-i18n="oc3-p1">LEAD uses your real-time location to surface chefs within your delivery radius and show accurate ETAs.</p>
+        <p class="text-xs text-slate-500 mb-8" data-i18n="oc3-p2">Your location is only used while the app is active. Never sold to third parties.</p>
+        <div class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mb-3 text-left"><p class="text-xs font-bold text-white mb-1">📌 Helsinki, Kallio</p><p class="text-xs text-slate-400" data-i18n="oc3-geo">Mock geo · 60.1833°N, 24.9497°E</p></div>
+        <div class="progress-bar w-full mb-6"><div class="progress-fill" style="width:70%"></div></div>
+      </div>
+      <div class="space-y-2 flex-shrink-0">
+        <button onclick="ocNext(4)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all" data-i18n="oc3-allow">Allow Location ✓</button>
+        <button onclick="ocNext(4)" class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-sm font-medium text-slate-400 transition-all" data-i18n="oc3-skip">Not Now</button>
+      </div>
+    </div>
+    <!-- Step 4 -->
+    <div id="oc-step-4" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oc-dots-4"></div><button onclick="ocBack(3)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="oc4-h">Add a Payment Method</h2>
+      <p class="text-xs text-slate-400 mb-5" data-i18n="oc4-p">Secured by Stripe. Card details encrypted and never stored on LEAD servers.</p>
+      <div class="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-5 mb-5 border border-slate-600 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8"></div>
+        <div class="text-xs text-slate-400 mb-6" data-i18n="oc4-card-label">LEAD Pay Card</div>
+        <div class="text-lg font-mono font-bold text-white mb-4 tracking-widest">•••• •••• •••• 4242</div>
+        <div class="flex justify-between text-xs text-slate-400"><span data-i18n="oc4-cardholder">Cardholder Name</span><span>MM / YY</span></div>
+      </div>
+      <div class="space-y-3 mb-5">
+        <input type="text" data-i18n-ph="oc4-ph-card" placeholder="Card number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono">
+        <div class="flex gap-3">
+          <input type="text" placeholder="MM / YY" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+          <input type="text" placeholder="CVV" class="w-20 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+        </div>
+        <input type="text" data-i18n-ph="oc4-ph-name" placeholder="Name on card" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+      </div>
+      <button onclick="ocNext(5)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all" data-i18n="oc4-save">Save &amp; Continue →</button>
+      <button onclick="ocNext(5)" class="w-full text-slate-500 text-xs py-2 hover:text-slate-300 transition-all" data-i18n="oc4-skip">Skip for now</button>
+    </div>
+    <!-- Step 5 -->
+    <div id="oc-step-5" class="ob-step hidden flex flex-col h-full p-5">
+      <div class="flex justify-between items-center mb-6 flex-shrink-0"><div class="flex gap-1" id="oc-dots-5"></div></div>
+      <div class="flex-1 flex flex-col justify-center items-center text-center">
+        <div class="success-pop w-24 h-24 rounded-full bg-emerald-500/15 border-2 border-emerald-500 flex items-center justify-center text-5xl mb-6 shadow-[0_0_40px_rgba(16,185,129,0.25)]">✅</div>
+        <h2 class="text-2xl font-bold text-white mb-3" data-i18n="oc5-h">You're all set!</h2>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="oc5-p">Welcome to LEAD. Your profile is ready. Start discovering chefs near you right now.</p>
+        <div class="w-full bg-slate-800 border border-emerald-500/30 rounded-xl p-4 text-left mb-6">
+          <p class="text-xs font-bold text-emerald-400 mb-2" data-i18n="oc5-summary-label">YOUR PROFILE SUMMARY</p>
+          <div class="space-y-1 text-xs text-slate-400">
+            <p data-i18n="oc5-s1">🌱 Preferences: Vegan, High Protein</p>
+            <p data-i18n="oc5-s2">📍 Location: Helsinki, Kallio</p>
+            <p data-i18n="oc5-s3">💳 Payment: Card ending •4242</p>
+            <p data-i18n="oc5-s4">⭐ Membership: LEAD Basic (Free)</p>
+          </div>
+        </div>
+      </div>
+      <button onclick="registerConsumer(); switchView('consumer')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-emerald-900/40" data-i18n="oc5-btn">Start Discovering 🍽️</button>
+    </div>
+  </div>
+
+  <!-- ════════════════ ONBOARDING: CHEF ════════════════ -->
+  <div id="view-onboard-chef" class="app-view hidden flex-1 flex flex-col overflow-hidden">
+    <!-- Step 1 -->
+    <div id="och-step-1" class="ob-step flex flex-col h-full p-5">
+      <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="och-dots-1"></div><span class="text-xs text-slate-500 font-mono" data-i18n="och-badge">CHEF ONBOARDING</span></div>
+      <div class="flex-1 flex flex-col justify-center items-center text-center">
+        <div class="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(245,158,11,0.15)]">👨‍🍳</div>
+        <h2 class="text-2xl font-bold text-white mb-3 leading-tight" data-i18n="och1-h">Cook. Earn.<br>Thrive.</h2>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="och1-p">Turn your kitchen and your recipes into a real income stream. LEAD connects you directly to hungry customers nearby.</p>
+        <div class="space-y-2 w-full text-left mb-8">
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-amber-400">✓</span> <span data-i18n="och1-b1">Set your own menu, hours &amp; prices</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-amber-400">✓</span> <span data-i18n="och1-b2">Payouts directly to your bank</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-amber-400">✓</span> <span data-i18n="och1-b3">LEAD handles logistics &amp; payments</span></div>
+        </div>
+      </div>
+      <button onclick="ochNext(2)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all shadow-lg shadow-amber-900/30" data-i18n="och1-btn">Apply as Chef →</button>
+    </div>
+    <!-- Step 2 -->
+    <div id="och-step-2" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-2"></div><button onclick="ochBack(1)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="och2-h">Tell us about your kitchen</h2>
+      <p class="text-xs text-slate-400 mb-5" data-i18n="och2-p">This is what customers will see on your public chef profile.</p>
+      <div class="space-y-3 mb-5">
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="och2-brand-lbl">KITCHEN / BRAND NAME</label><input id="chefBrandName" type="text" data-i18n-ph="och2-brand-ph" placeholder="e.g. Aino's Nordic Kitchen" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"></div>
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="och2-name-lbl">YOUR FULL NAME</label><input id="chefFullName" type="text" data-i18n-ph="och2-name-ph" placeholder="Legal name for KYC" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"></div>
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="och2-bio-lbl">SHORT BIO</label><textarea data-i18n-ph="och2-bio-ph" placeholder="Tell customers who you are..." class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 resize-none" rows="3"></textarea></div>
+      </div>
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="och2-type-lbl">KITCHEN TYPE</p>
+      <div class="flex gap-2 mb-5">
+        <span class="chip" onclick="toggleChip(this)" data-i18n="och2-home">🏠 Home Kitchen</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="och2-commercial">🍳 Commercial</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="och2-ghost">🚚 Ghost Kitchen</span>
+      </div>
+      <button onclick="ochNext(3)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all mt-2" data-i18n="btn-continue">Continue →</button>
+    </div>
+    <!-- Step 3 -->
+    <div id="och-step-3" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-3"></div><button onclick="ochBack(2)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="och3-h">Your cuisine &amp; specialties</h2>
+      <p class="text-xs text-slate-400 mb-4" data-i18n="och3-p">Pick what your kitchen does best.</p>
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="och3-cuisine-lbl">CUISINE STYLES</p>
+      <div class="flex flex-wrap gap-2 mb-4" id="cuisineTags">
+        <span class="cuisine-tag" onclick="toggleCuisine(this)">🇫🇮 Nordic</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇳 Indian</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇮🇹 Italian</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🇯🇵 Japanese</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🥗 Health Bowls</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🍞 Bakery</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🥩 BBQ / Grill</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🌮 Street Food</span><span class="cuisine-tag" onclick="toggleCuisine(this)">🍜 Asian Fusion</span>
+      </div>
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="och3-diet-lbl">DIETARY SPECIALISATIONS</p>
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-vegan">🌱 Vegan-Friendly</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-protein">💪 High Protein</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-gf">🌾 Gluten Free</span>
+        <span class="chip" onclick="toggleChip(this)" data-i18n="ch-keto">🥑 Keto</span>
+      </div>
+      <button onclick="ochNext(4)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all mt-4" data-i18n="btn-continue">Continue →</button>
+    </div>
+    <!-- Step 4 KYC -->
+    <div id="och-step-4" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-4"></div><button onclick="ochBack(3)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="och4-h">Identity &amp; Certification</h2>
+      <p class="text-xs text-slate-400 mb-1" data-i18n="och4-p">Required for all chefs. Documents reviewed within 24h.</p>
+      <div class="flex items-center gap-1.5 mb-5"><span class="text-xs text-emerald-400">🔒</span><span class="text-xs text-emerald-400" data-i18n="kyc-enc">End-to-end encrypted via Onfido</span></div>
+      <div class="space-y-3">
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-id'])"><span class="u-icon">🪪</span><div><div class="u-text font-bold" data-i18n="kyc-id">National ID or Passport</div><div class="u-text" data-i18n="kyc-id-sub">JPG, PNG or PDF · max 5MB</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-food'])"><span class="u-icon">📋</span><div><div class="u-text font-bold" data-i18n="kyc-food">Food Handler Certificate</div><div class="u-text" data-i18n="kyc-food-sub">Hygiene pass or equivalent</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-photo'])"><span class="u-icon">📸</span><div><div class="u-text font-bold" data-i18n="kyc-photo">Kitchen Photo</div><div class="u-text" data-i18n="kyc-photo-sub">Clear photo of your cooking space</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-tax'])"><span class="u-icon">🏛️</span><div><div class="u-text font-bold" data-i18n="kyc-tax">Tax ID or Business ID</div><div class="u-text" data-i18n="kyc-tax-sub">Finnish Y-tunnus or equivalent</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+      </div>
+      <button onclick="ochNext(5)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all mt-4" data-i18n="och4-btn">Submit for Review →</button>
+    </div>
+    <!-- Step 5 Availability -->
+    <div id="och-step-5" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-5"></div><button onclick="ochBack(4)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="och5-h">Set your availability</h2>
+      <p class="text-xs text-slate-400 mb-4" data-i18n="och5-p">Choose when you're open to orders.</p>
+      <div id="avail-grid" class="mb-4"></div>
+      <div class="toggle-wrap bg-slate-800 rounded-xl p-3 border border-slate-700 mb-3">
+        <div><p class="text-sm font-bold text-white" data-i18n="och5-instant">Instant Accept Mode</p><p class="text-xs text-slate-400" data-i18n="och5-instant-sub">Auto-accept without manual review</p></div>
+        <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-wrap bg-slate-800 rounded-xl p-3 border border-slate-700 mb-4">
+        <div><p class="text-sm font-bold text-white" data-i18n="och5-sched">Scheduled Orders</p><p class="text-xs text-slate-400" data-i18n="och5-sched-sub">Accept orders 2+ hours in advance</p></div>
+        <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <button onclick="ochNext(6)" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all" data-i18n="btn-save">Save &amp; Continue →</button>
+    </div>
+    <!-- Step 6 Payout -->
+    <div id="och-step-6" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="och-dots-6"></div><button onclick="ochBack(5)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="payout-h">Payout Setup</h2>
+      <p class="text-xs text-slate-400 mb-4" data-i18n="payout-p-chef">Payouts every Monday to your bank.</p>
+      <div class="space-y-3 mb-4">
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="lbl-iban">IBAN</label><input type="text" placeholder="FI12 3456 7890 1234 56" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"></div>
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="lbl-accholder">ACCOUNT HOLDER NAME</label><input type="text" data-i18n-ph="lbl-accholder-ph" placeholder="As on your bank account" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"></div>
+      </div>
+      <div class="bg-slate-800 border border-amber-500/20 rounded-xl p-4 mb-4">
+        <p class="text-xs font-bold text-amber-400 mb-2" data-i18n="earn-title">💰 LEAD CHEF EARNINGS MODEL</p>
+        <div class="space-y-1 text-xs text-slate-400">
+          <div class="flex justify-between"><span data-i18n="earn-commission">Platform commission</span><span class="text-white">12%</span></div>
+          <div class="flex justify-between"><span data-i18n="earn-processing">Payment processing</span><span class="text-white">1.5%</span></div>
+          <div class="flex justify-between border-t border-slate-700 pt-1 mt-1"><span class="text-emerald-400 font-bold" data-i18n="earn-keep">You keep</span><span class="text-emerald-400 font-bold">86.5%</span></div>
+        </div>
+      </div>
+      <button onclick="ochGoLive()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-amber-900/40" data-i18n="och6-btn">🚀 Submit Application</button>
+    </div>
+    <!-- Step 7 Success -->
+    <div id="och-step-7" class="ob-step hidden flex flex-col h-full p-5">
+      <div class="flex-1 flex flex-col justify-center items-center text-center">
+        <div class="success-pop w-24 h-24 rounded-full bg-amber-500/15 border-2 border-amber-500 flex items-center justify-center text-5xl mb-6 shadow-[0_0_40px_rgba(245,158,11,0.2)]">🎉</div>
+        <h2 class="text-2xl font-bold text-white mb-3" data-i18n="och7-h">Application Submitted!</h2>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="och7-p">KYC documents reviewed within 24 hours. You'll be emailed once approved to go live.</p>
+        <div class="w-full bg-slate-800 border border-amber-500/20 rounded-xl p-4 text-left mb-6">
+          <p class="text-xs font-bold text-amber-400 mb-2" data-i18n="och7-status-label">APPLICATION STATUS</p>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span data-i18n="och7-s1">Profile created</span></div>
+            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span data-i18n="och7-s2">Cuisine &amp; availability set</span></div>
+            <div class="flex items-center gap-2"><span class="text-amber-400">⏳</span><span data-i18n="och7-s3">KYC review — <em>pending</em></span></div>
+            <div class="flex items-center gap-2"><span class="text-slate-500">○</span><span data-i18n="och7-s4" class="text-slate-500">Chef profile published</span></div>
+          </div>
+        </div>
+        <p class="text-xs text-emerald-400 font-mono" data-i18n="sent-admin">✓ Data sent to Admin Panel</p>
+      </div>
+      <button onclick="switchView('chef')" class="w-full bg-amber-500 hover:bg-amber-400 py-3.5 rounded-xl text-sm font-bold text-slate-900 transition-all" data-i18n="och7-btn">View Chef Dashboard</button>
+    </div>
+  </div>
+
+  <!-- ════════════════ ONBOARDING: COURIER ════════════════ -->
+  <div id="view-onboard-courier" class="app-view hidden flex-1 flex flex-col overflow-hidden">
+    <!-- Step 1 -->
+    <div id="oor-step-1" class="ob-step flex flex-col h-full p-5">
+      <div class="flex justify-between items-center mb-6"><div class="flex gap-1" id="oor-dots-1"></div><span class="text-xs text-slate-500 font-mono" data-i18n="oor-badge">COURIER ONBOARDING</span></div>
+      <div class="flex-1 flex flex-col justify-center items-center text-center">
+        <div class="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(59,130,246,0.15)]">🛵</div>
+        <h2 class="text-2xl font-bold text-white mb-3 leading-tight" data-i18n="oor1-h">Deliver. Earn.<br>Anywhere.</h2>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="oor1-p">Accept food dispatch bounties in your area. Work when you want, earn what you deserve.</p>
+        <div class="space-y-2 w-full text-left mb-8">
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-blue-400">✓</span> <span data-i18n="oor1-b1">Real-time geo-radius matching</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-blue-400">✓</span> <span data-i18n="oor1-b2">Transparent bounty pricing</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-300"><span class="text-blue-400">✓</span> <span data-i18n="oor1-b3">Weekly payouts, no hidden cuts</span></div>
+        </div>
+      </div>
+      <button onclick="oorNext(2)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-blue-900/40" data-i18n="oor1-btn">Apply as Courier →</button>
+    </div>
+    <!-- Step 2 Vehicle -->
+    <div id="oor-step-2" class="ob-step hidden flex flex-col h-full p-5">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-2"></div><button onclick="oorBack(1)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="oor2-h">What's your vehicle?</h2>
+      <p class="text-xs text-slate-400 mb-6" data-i18n="oor2-p">Vehicle type determines dispatch eligibility and bounty tier.</p>
+      <div class="flex gap-3 mb-6" id="vehicleCards">
+        <div class="vehicle-card" onclick="selectVehicle(this,'bicycle')"><span class="vc-icon">🚴</span><span class="vc-label" data-i18n="veh-bicycle">Bicycle</span></div>
+        <div class="vehicle-card" onclick="selectVehicle(this,'scooter')"><span class="vc-icon">🛵</span><span class="vc-label" data-i18n="veh-scooter">Scooter</span></div>
+        <div class="vehicle-card" onclick="selectVehicle(this,'car')"><span class="vc-icon">🚗</span><span class="vc-label" data-i18n="veh-car">Car</span></div>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-6">
+        <p class="text-[10px] font-bold text-slate-500 tracking-wider mb-3" data-i18n="oor2-tier-lbl">VEHICLE TIER COMPARISON</p>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between text-slate-400"><span data-i18n="veh-bicycle">Bicycle</span><span class="text-white" data-i18n="oor2-t1">Eco tier · up to 3km</span></div>
+          <div class="flex justify-between text-slate-400"><span data-i18n="veh-scooter">Scooter</span><span class="text-blue-300" data-i18n="oor2-t2">Standard · up to 8km</span></div>
+          <div class="flex justify-between text-slate-400"><span data-i18n="veh-car">Car</span><span class="text-amber-300" data-i18n="oor2-t3">Premium · up to 15km</span></div>
+        </div>
+      </div>
+      <button onclick="oorNext(3)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all mt-auto" data-i18n="btn-continue">Continue →</button>
+    </div>
+    <!-- Step 3 Personal -->
+    <div id="oor-step-3" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-3"></div><button onclick="oorBack(2)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="oor3-h">Personal Details</h2>
+      <p class="text-xs text-slate-400 mb-5" data-i18n="oor3-p">Used to verify your identity and process payouts.</p>
+      <div class="space-y-3 mb-4">
+        <div class="flex gap-3">
+          <div class="flex-1"><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="lbl-firstname">FIRST NAME</label><input id="courierFirstName" type="text" data-i18n-ph="lbl-firstname" placeholder="First" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"></div>
+          <div class="flex-1"><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="lbl-lastname">LAST NAME</label><input id="courierLastName" type="text" data-i18n-ph="lbl-lastname" placeholder="Last" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"></div>
+        </div>
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="lbl-phone">PHONE NUMBER</label><input type="tel" placeholder="+358 40 123 4567" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"></div>
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="lbl-address">HOME ADDRESS</label><input type="text" data-i18n-ph="lbl-address-ph" placeholder="Street, City, Postcode" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"></div>
+      </div>
+      <button onclick="oorNext(4)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all" data-i18n="btn-continue">Continue →</button>
+    </div>
+    <!-- Step 4 KYC -->
+    <div id="oor-step-4" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-4"></div><button onclick="oorBack(3)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="oor4-h">Document Verification</h2>
+      <div class="flex items-center gap-1.5 mb-4"><span class="text-xs text-blue-400">🔒</span><span class="text-xs text-blue-400" data-i18n="oor4-enc">256-bit encrypted · Onfido KYC</span></div>
+      <div class="space-y-3 mb-5">
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-id'])"><span class="u-icon">🪪</span><div><div class="u-text font-bold" data-i18n="kyc-id">National ID or Passport</div><div class="u-text" data-i18n="oor4-id-sub">Front + back if applicable</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-licence'])"><span class="u-icon">🚗</span><div><div class="u-text font-bold" data-i18n="kyc-licence">Driving Licence</div><div class="u-text" data-i18n="oor4-lic-sub">Required for scooter &amp; car tiers</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-selfie'])"><span class="u-icon">🤳</span><div><div class="u-text font-bold" data-i18n="kyc-selfie">Live Selfie Check</div><div class="u-text" data-i18n="oor4-selfie-sub">Hold ID next to your face</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+        <div class="upload-btn" onclick="mockUpload(this, T[currentLang]['kyc-insurance'])"><span class="u-icon">🛡️</span><div><div class="u-text font-bold" data-i18n="kyc-insurance">Vehicle Insurance</div><div class="u-text" data-i18n="oor4-ins-sub">Valid policy certificate</div></div><span class="ml-auto text-slate-500 text-lg">+</span></div>
+      </div>
+      <button onclick="oorNext(5)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all" data-i18n="oor4-btn">Submit Documents →</button>
+    </div>
+    <!-- Step 5 Payout -->
+    <div id="oor-step-5" class="ob-step hidden flex flex-col h-full p-5 overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0"><div class="flex gap-1" id="oor-dots-5"></div><button onclick="oorBack(4)" class="text-slate-500 text-xs hover:text-slate-300" data-i18n="btn-back">← Back</button></div>
+      <h2 class="text-lg font-bold text-white mt-4 mb-1" data-i18n="payout-h">Payout Setup</h2>
+      <p class="text-xs text-slate-400 mb-4" data-i18n="payout-p-cour">Earnings paid out every Monday.</p>
+      <div class="space-y-3 mb-4">
+        <div><label class="text-[10px] font-bold text-slate-500 tracking-wider" data-i18n="lbl-iban">IBAN</label><input type="text" placeholder="FI12 3456 7890 1234 56" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"></div>
+      </div>
+      <div class="bg-slate-800 border border-blue-500/20 rounded-xl p-4 mb-4">
+        <p class="text-xs font-bold text-blue-400 mb-2" data-i18n="bounty-title">📊 BOUNTY STRUCTURE</p>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex justify-between text-slate-400"><span data-i18n="bounty-base">Base delivery rate</span><span class="text-white">€3.50 / trip</span></div>
+          <div class="flex justify-between text-slate-400"><span data-i18n="bounty-km">Per km bonus</span><span class="text-white">+€0.45 / km</span></div>
+          <div class="flex justify-between text-slate-400 border-t border-slate-700 pt-1.5 mt-1.5"><span data-i18n="bounty-avg">Avg trip (Helsinki)</span><span class="text-emerald-400 font-bold">~€7.20</span></div>
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2" data-i18n="zone-lbl">PREFERRED ZONE (KM)</p>
+      <div class="flex gap-2 mb-4" id="zoneSelector">
+        <div class="zone-ring" onclick="selectZone(this)">1</div><div class="zone-ring chosen" onclick="selectZone(this)">3</div><div class="zone-ring" onclick="selectZone(this)">5</div><div class="zone-ring" onclick="selectZone(this)">8</div><div class="zone-ring" onclick="selectZone(this)">10</div><div class="zone-ring" onclick="selectZone(this)">15</div>
+      </div>
+      <button onclick="registerCourier(); oorNext(6)" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all" data-i18n="oor5-btn">Submit Application →</button>
+    </div>
+    <!-- Step 6 Success -->
+    <div id="oor-step-6" class="ob-step hidden flex flex-col h-full p-5">
+      <div class="flex-1 flex flex-col justify-center items-center text-center">
+        <div class="success-pop relative w-24 h-24 mb-6"><div class="absolute inset-0 bg-blue-500/15 rounded-full border-2 border-blue-500 shadow-[0_0_40px_rgba(59,130,246,0.25)] flex items-center justify-center text-5xl">✅</div><div class="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-500 rounded-full border-2 border-slate-900 flex items-center justify-center text-sm">🛵</div></div>
+        <h2 class="text-2xl font-bold text-white mb-3" data-i18n="oor6-h">Application Received!</h2>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed" data-i18n="oor6-p">You'll be verified within 24 hours. Once approved, go online and start accepting bounties.</p>
+        <div class="w-full bg-slate-800 border border-blue-500/20 rounded-xl p-4 text-left mb-4">
+          <p class="text-xs font-bold text-blue-400 mb-2" data-i18n="oor6-status-label">COURIER APPLICATION STATUS</p>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span data-i18n="oor6-s1">Vehicle registered</span></div>
+            <div class="flex items-center gap-2"><span class="text-emerald-400">✓</span><span data-i18n="oor6-s2">Documents submitted</span></div>
+            <div class="flex items-center gap-2"><span class="text-amber-400">⏳</span><span data-i18n="oor6-s3">KYC review — <em>pending</em></span></div>
+            <div class="flex items-center gap-2"><span class="text-slate-500">○</span><span data-i18n="oor6-s4" class="text-slate-500">Bounty radar activated</span></div>
+          </div>
+        </div>
+        <p class="text-xs text-emerald-400 font-mono" data-i18n="sent-admin">✓ Data sent to Admin Panel</p>
+      </div>
+      <button onclick="switchView('courier')" class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl text-sm font-bold text-white transition-all" data-i18n="oor6-btn">View Courier Dashboard</button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<div id="adminToast"></div>
+
+<div class="mt-6 mb-8 flex flex-wrap justify-center gap-4 text-xs text-slate-500">
+  <span>● <span class="text-emerald-500" data-i18n="legend-consumer">Consumer</span></span>
+  <span>● <span class="text-amber-500" data-i18n="legend-chef">Chef</span></span>
+  <span>● <span class="text-blue-500" data-i18n="legend-courier">Courier</span></span>
+</div>
 
 <script>
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
+   i18n — TRANSLATION STRINGS
+══════════════════════════════════════════════════════ */
+const T = {
+  en: {
+    /* admin bar */
+    'bar-notconn':    'Admin Panel: not connected',
+    'bar-regcount':   '0 users registered this session',
+    'bar-openadmin':  '⚙ Open Admin Panel ↗',
+    /* page header */
+    'hdr-staging':    'Staging Environment',
+    'hdr-sub':        'Internal Architecture & Prototype Logic | Business Finland MVS',
+    'hdr-rbac':       'ROLE-BASED ACCESS CONTROL (RBAC) SIMULATOR',
+    /* nav */
+    'nav-hub':        'Platform Hub',
+    'nav-consumer':   'Consumer',
+    'nav-chef':       'Chef',
+    'nav-courier':    'Courier',
+    'nav-dispatch':   'Live Dispatch',
+    'nav-onboard':    'ONBOARD →',
+    'nav-ob-consumer':'👤 Consumer',
+    'nav-ob-chef':    '👨‍🍳 Chef',
+    'nav-ob-courier': '🛵 Courier',
+    /* platform hub */
+    'hub-title':      'System Status',
+    'hub-indents':    'Active Indents',
+    'hub-chefs':      'Online Chefs',
+    'hub-couriers':   'Active Couriers',
+    'hub-ping':       'Database Ping',
+    'hub-log':        'Live Webhook Log',
+    /* consumer dashboard */
+    'con-title':      'Discovery',
+    'con-search':     'Search dishes, chefs...',
+    'con-f-all':      'All',
+    'con-f-near':     'Near & Fast ⚡',
+    'con-f-under':    'Under €10 💸',
+    'con-f-member':   'LEAD Member ★',
+    'con-f-prev':     'Previously Ordered 🔄',
+    'con-add':        'Add to Indent',
+    /* chef dashboard */
+    'chef-title':     'Active Pipeline',
+    'chef-status':    'Status: ONLINE & ACCEPTING',
+    'chef-justnow':   'Just Now',
+    'chef-value':     'Value',
+    'chef-accept':    'Accept & Prep',
+    'chef-prepping':  'Prepping',
+    'chef-markready': 'Mark Ready for Courier',
+    /* courier dashboard */
+    'cour-radar':     'Radar',
+    'cour-online':    'Online',
+    'cour-bounty':    'NEW BOUNTY DETECTED',
+    'cour-route':     '2.4 km total route',
+    'cour-accept':    'Accept Dispatch',
+    /* dispatch */
+    'disp-pickup':    'Pickup',
+    'disp-dropoff':   'Dropoff',
+    'disp-title':     'Courier in Transit',
+    'disp-eta':       'ETA: 12 mins',
+    'disp-courier-id':'Courier ID: 09',
+    'disp-enroute':   'On route to dropoff',
+    /* shared buttons */
+    'btn-back':       '← Back',
+    'btn-continue':   'Continue →',
+    'btn-save':       'Save & Continue →',
+    /* consumer onboarding */
+    'oc-badge':       'CONSUMER ONBOARDING',
+    'oc1-h':          'Find food that fuels your goals.',
+    'oc1-p':          'Discover home-cooked meals from local chefs, filtered by outcome — not just cuisine.',
+    'oc1-b1':         'Real chefs in your neighbourhood',
+    'oc1-b2':         'Filter by protein, price, or ETA',
+    'oc1-b3':         'Membership perks & exclusive offers',
+    'oc1-btn':        'Get Started →',
+    'oc2-h':          'What are your goals?',
+    'oc2-p':          "We'll personalise your feed. Pick all that apply.",
+    'oc2-diet-label': 'DIETARY PREFERENCES',
+    'oc2-del-label':  'DELIVERY PRIORITY',
+    'oc2-price-label':'PRICE RANGE',
+    'oc3-h':          'Allow Location Access',
+    'oc3-p1':         'LEAD uses your real-time location to surface chefs within your delivery radius and show accurate ETAs.',
+    'oc3-p2':         'Your location is only used while the app is active. Never sold to third parties.',
+    'oc3-geo':        'Mock geo · 60.1833°N, 24.9497°E',
+    'oc3-allow':      'Allow Location ✓',
+    'oc3-skip':       'Not Now',
+    'oc4-h':          'Add a Payment Method',
+    'oc4-p':          'Secured by Stripe. Card details encrypted and never stored on LEAD servers.',
+    'oc4-card-label': 'LEAD Pay Card',
+    'oc4-cardholder': 'Cardholder Name',
+    'oc4-ph-card':    'Card number',
+    'oc4-ph-name':    'Name on card',
+    'oc4-save':       'Save & Continue →',
+    'oc4-skip':       'Skip for now',
+    'oc5-h':          "You're all set!",
+    'oc5-p':          'Welcome to LEAD. Your profile is ready. Start discovering chefs near you right now.',
+    'oc5-summary-label':'YOUR PROFILE SUMMARY',
+    'oc5-s1':         '🌱 Preferences: Vegan, High Protein',
+    'oc5-s2':         '📍 Location: Helsinki, Kallio',
+    'oc5-s3':         '💳 Payment: Card ending •4242',
+    'oc5-s4':         '⭐ Membership: LEAD Basic (Free)',
+    'oc5-btn':        'Start Discovering 🍽️',
+    /* chips shared */
+    'ch-protein':     '💪 High Protein',
+    'ch-vegan':       '🌱 Vegan',
+    'ch-keto':        '🥑 Keto / Low Carb',
+    'ch-gf':          '🌾 Gluten Free',
+    'ch-veg':         '🍃 Vegetarian',
+    'ch-clean':       '🧘 Clean Eating',
+    'ch-fast':        '⚡ Super Fast (under 20 min)',
+    'ch-value':       '💶 Best Value',
+    'ch-rated':       '⭐ Top Rated Chefs',
+    'ch-sched':       '🗓️ Schedule Ahead',
+    'ch-p1':          '€ Under €8',
+    'ch-p2':          '€€ €8–€15',
+    'ch-p3':          '€€€ €15+',
+    /* chef onboarding */
+    'och-badge':      'CHEF ONBOARDING',
+    'och1-h':         'Cook. Earn. Thrive.',
+    'och1-p':         'Turn your kitchen and your recipes into a real income stream. LEAD connects you directly to hungry customers nearby.',
+    'och1-b1':        'Set your own menu, hours & prices',
+    'och1-b2':        'Payouts directly to your bank',
+    'och1-b3':        'LEAD handles logistics & payments',
+    'och1-btn':       'Apply as Chef →',
+    'och2-h':         'Tell us about your kitchen',
+    'och2-p':         'This is what customers will see on your public chef profile.',
+    'och2-brand-lbl': 'KITCHEN / BRAND NAME',
+    'och2-brand-ph':  "e.g. Aino's Nordic Kitchen",
+    'och2-name-lbl':  'YOUR FULL NAME',
+    'och2-name-ph':   'Legal name for KYC',
+    'och2-bio-lbl':   'SHORT BIO',
+    'och2-bio-ph':    'Tell customers who you are...',
+    'och2-type-lbl':  'KITCHEN TYPE',
+    'och2-home':      '🏠 Home Kitchen',
+    'och2-commercial':'🍳 Commercial',
+    'och2-ghost':     '🚚 Ghost Kitchen',
+    'och3-h':         'Your cuisine & specialties',
+    'och3-p':         'Pick what your kitchen does best.',
+    'och3-cuisine-lbl':'CUISINE STYLES',
+    'och3-diet-lbl':  'DIETARY SPECIALISATIONS',
+    'och4-h':         'Identity & Certification',
+    'och4-p':         'Required for all chefs. Documents reviewed within 24h.',
+    'och4-btn':       'Submit for Review →',
+    'och5-h':         'Set your availability',
+    'och5-p':         "Choose when you're open to orders.",
+    'och5-instant':   'Instant Accept Mode',
+    'och5-instant-sub':'Auto-accept without manual review',
+    'och5-sched':     'Scheduled Orders',
+    'och5-sched-sub': 'Accept orders 2+ hours in advance',
+    'och6-btn':       '🚀 Submit Application',
+    'och7-h':         'Application Submitted!',
+    'och7-p':         "KYC documents reviewed within 24 hours. You'll be emailed once approved to go live.",
+    'och7-status-label':'APPLICATION STATUS',
+    'och7-s1':        'Profile created',
+    'och7-s2':        'Cuisine & availability set',
+    'och7-s3':        'KYC review — pending',
+    'och7-s4':        'Chef profile published',
+    'och7-btn':       'View Chef Dashboard',
+    /* courier onboarding */
+    'oor-badge':      'COURIER ONBOARDING',
+    'oor1-h':         'Deliver. Earn. Anywhere.',
+    'oor1-p':         'Accept food dispatch bounties in your area. Work when you want, earn what you deserve.',
+    'oor1-b1':        'Real-time geo-radius matching',
+    'oor1-b2':        'Transparent bounty pricing',
+    'oor1-b3':        'Weekly payouts, no hidden cuts',
+    'oor1-btn':       'Apply as Courier →',
+    'oor2-h':         "What's your vehicle?",
+    'oor2-p':         'Vehicle type determines dispatch eligibility and bounty tier.',
+    'oor2-tier-lbl':  'VEHICLE TIER COMPARISON',
+    'oor2-t1':        'Eco tier · up to 3km',
+    'oor2-t2':        'Standard · up to 8km',
+    'oor2-t3':        'Premium · up to 15km',
+    'oor3-h':         'Personal Details',
+    'oor3-p':         'Used to verify your identity and process payouts.',
+    'oor4-h':         'Document Verification',
+    'oor4-enc':       '256-bit encrypted · Onfido KYC',
+    'oor4-id-sub':    'Front + back if applicable',
+    'oor4-lic-sub':   'Required for scooter & car tiers',
+    'oor4-selfie-sub':'Hold ID next to your face',
+    'oor4-ins-sub':   'Valid policy certificate',
+    'oor4-btn':       'Submit Documents →',
+    'oor5-btn':       'Submit Application →',
+    'oor6-h':         'Application Received!',
+    'oor6-p':         "You'll be verified within 24 hours. Once approved, go online and start accepting bounties.",
+    'oor6-status-label':'COURIER APPLICATION STATUS',
+    'oor6-s1':        'Vehicle registered',
+    'oor6-s2':        'Documents submitted',
+    'oor6-s3':        'KYC review — pending',
+    'oor6-s4':        'Bounty radar activated',
+    'oor6-btn':       'View Courier Dashboard',
+    /* KYC doc names */
+    'kyc-id':         'National ID or Passport',
+    'kyc-id-sub':     'JPG, PNG or PDF · max 5MB',
+    'kyc-food':       'Food Handler Certificate',
+    'kyc-food-sub':   'Hygiene pass or equivalent',
+    'kyc-photo':      'Kitchen Photo',
+    'kyc-photo-sub':  'Clear photo of your cooking space',
+    'kyc-tax':        'Tax ID or Business ID',
+    'kyc-tax-sub':    'Finnish Y-tunnus or equivalent',
+    'kyc-enc':        'End-to-end encrypted via Onfido',
+    'kyc-licence':    'Driving Licence',
+    'kyc-selfie':     'Live Selfie Check',
+    'kyc-insurance':  'Vehicle Insurance',
+    /* shared payout */
+    'payout-h':       'Payout Setup',
+    'payout-p-chef':  'Payouts every Monday to your bank.',
+    'payout-p-cour':  'Earnings paid out every Monday.',
+    'lbl-iban':       'IBAN',
+    'lbl-accholder':  'ACCOUNT HOLDER NAME',
+    'lbl-accholder-ph':'As on your bank account',
+    'earn-title':     '💰 LEAD CHEF EARNINGS MODEL',
+    'earn-commission':'Platform commission',
+    'earn-processing':'Payment processing',
+    'earn-keep':      'You keep',
+    'bounty-title':   '📊 BOUNTY STRUCTURE',
+    'bounty-base':    'Base delivery rate',
+    'bounty-km':      'Per km bonus',
+    'bounty-avg':     'Avg trip (Helsinki)',
+    'zone-lbl':       'PREFERRED ZONE (KM)',
+    'veh-bicycle':    'Bicycle',
+    'veh-scooter':    'Scooter',
+    'veh-car':        'Car',
+    /* labels */
+    'lbl-firstname':  'FIRST NAME',
+    'lbl-lastname':   'LAST NAME',
+    'lbl-phone':      'PHONE NUMBER',
+    'lbl-address':    'HOME ADDRESS',
+    'lbl-address-ph': 'Street, City, Postcode',
+    /* misc */
+    'sent-admin':     '✓ Data sent to Admin Panel',
+    'legend-consumer':'Consumer',
+    'legend-chef':    'Chef',
+    'legend-courier': 'Courier',
+    /* avail grid */
+    'avail-days':     ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    'avail-slots':    ['Morning','Lunch','Dinner'],
+  },
+
+  fi: {
+    /* admin bar */
+    'bar-notconn':    'Hallintapaneeli: ei yhteyttä',
+    'bar-regcount':   '0 käyttäjää rekisteröity tässä sessiossa',
+    'bar-openadmin':  '⚙ Avaa hallintapaneeli ↗',
+    /* page header */
+    'hdr-staging':    'Testausympäristö',
+    'hdr-sub':        'Sisäinen arkkitehtuuri ja prototyyppimalli | Business Finland MVS',
+    'hdr-rbac':       'ROOLIPOHJAINEN KÄYTTÖOIKEUSSIMULATORI (RBAC)',
+    /* nav */
+    'nav-hub':        'Alustan yleiskatsaus',
+    'nav-consumer':   'Kuluttaja',
+    'nav-chef':       'Kokki',
+    'nav-courier':    'Kuriiri',
+    'nav-dispatch':   'Live-lähetys',
+    'nav-onboard':    'REKISTERÖI →',
+    'nav-ob-consumer':'👤 Kuluttaja',
+    'nav-ob-chef':    '👨‍🍳 Kokki',
+    'nav-ob-courier': '🛵 Kuriiri',
+    /* platform hub */
+    'hub-title':      'Järjestelmän tila',
+    'hub-indents':    'Aktiiviset tilaukset',
+    'hub-chefs':      'Kokit paikalla',
+    'hub-couriers':   'Aktiiviset kuriirit',
+    'hub-ping':       'Tietokantapingi',
+    'hub-log':        'Live-webhook-loki',
+    /* consumer dashboard */
+    'con-title':      'Löydä',
+    'con-search':     'Etsi ruokia, kokkeja...',
+    'con-f-all':      'Kaikki',
+    'con-f-near':     'Lähellä & nopeasti ⚡',
+    'con-f-under':    'Alle 10 € 💸',
+    'con-f-member':   'LEAD-jäsen ★',
+    'con-f-prev':     'Aiemmin tilattu 🔄',
+    'con-add':        'Lisää tilaukseen',
+    /* chef dashboard */
+    'chef-title':     'Aktiiviset tilaukset',
+    'chef-status':    'Tila: ONLINE & VASTAANOTTAA',
+    'chef-justnow':   'Juuri nyt',
+    'chef-value':     'Arvo',
+    'chef-accept':    'Hyväksy & valmista',
+    'chef-prepping':  'Valmistuksessa',
+    'chef-markready': 'Merkitse valmiiksi kuriiria varten',
+    /* courier dashboard */
+    'cour-radar':     'Tutka',
+    'cour-online':    'Paikalla',
+    'cour-bounty':    'UUSI TOIMITUS HAVAITTU',
+    'cour-route':     '2,4 km kokonaisreitti',
+    'cour-accept':    'Hyväksy toimitus',
+    /* dispatch */
+    'disp-pickup':    'Nouto',
+    'disp-dropoff':   'Toimitus',
+    'disp-title':     'Kuriiri matkalla',
+    'disp-eta':       'Arvioitu aika: 12 min',
+    'disp-courier-id':'Kuriiri-ID: 09',
+    'disp-enroute':   'Matkalla toimituspisteeseen',
+    /* shared buttons */
+    'btn-back':       '← Takaisin',
+    'btn-continue':   'Jatka →',
+    'btn-save':       'Tallenna & jatka →',
+    /* consumer onboarding */
+    'oc-badge':       'KULUTTAJAN REKISTERÖINTI',
+    'oc1-h':          'Löydä ruokaa, joka tukee tavoitteitasi.',
+    'oc1-p':          'Paikallisten kokkien kotiruokia, suodatettuna tavoitteiden mukaan — ei vain keittiötyypin.',
+    'oc1-b1':         'Oikeat kokit lähialueellasi',
+    'oc1-b2':         'Suodata proteiinin, hinnan tai toimitusajan mukaan',
+    'oc1-b3':         'Jäsenetuja ja erikoistarjouksia',
+    'oc1-btn':        'Aloita →',
+    'oc2-h':          'Mitkä ovat tavoitteesi?',
+    'oc2-p':          'Muokkaamme feedisi sinulle. Valitse kaikki sopivat.',
+    'oc2-diet-label': 'RUOKAVALIOSUOSIKIT',
+    'oc2-del-label':  'TOIMITUKSEN PRIORITEETTI',
+    'oc2-price-label':'HINTAHAITARI',
+    'oc3-h':          'Salli sijaintipalvelut',
+    'oc3-p1':         'LEAD käyttää sijaintiasi löytääkseen läheiset kokit ja antaakseen tarkat toimitusajat.',
+    'oc3-p2':         'Sijaintiasi käytetään vain sovelluksen ollessa auki. Sitä ei koskaan myydä kolmansille osapuolille.',
+    'oc3-geo':        'Testitila · 60.1833°P, 24.9497°I',
+    'oc3-allow':      'Salli sijainti ✓',
+    'oc3-skip':       'Ei nyt',
+    'oc4-h':          'Lisää maksutapa',
+    'oc4-p':          'Suojattu Stripellä. Korttitiedot salataan eikä niitä tallenneta LEAD-palvelimille.',
+    'oc4-card-label': 'LEAD Pay -kortti',
+    'oc4-cardholder': 'Kortinhaltijan nimi',
+    'oc4-ph-card':    'Kortin numero',
+    'oc4-ph-name':    'Nimi kortissa',
+    'oc4-save':       'Tallenna & jatka →',
+    'oc4-skip':       'Ohita toistaiseksi',
+    'oc5-h':          'Kaikki on valmista!',
+    'oc5-p':          'Tervetuloa LEADiin. Profiilisi on valmis. Löydä läheiset kokit heti.',
+    'oc5-summary-label':'PROFIILISI YHTEENVETO',
+    'oc5-s1':         '🌱 Suosikit: vegaani, runsasproteiininen',
+    'oc5-s2':         '📍 Sijainti: Helsinki, Kallio',
+    'oc5-s3':         '💳 Maksu: kortti, päättyy •4242',
+    'oc5-s4':         '⭐ Jäsenyys: LEAD Perus (ilmainen)',
+    'oc5-btn':        'Aloita löytäminen 🍽️',
+    /* chips shared */
+    'ch-protein':     '💪 Runsasproteiininen',
+    'ch-vegan':       '🌱 Vegaani',
+    'ch-keto':        '🥑 Keto / vähähiilihydraattinen',
+    'ch-gf':          '🌾 Gluteeniton',
+    'ch-veg':         '🍃 Kasvissyöjä',
+    'ch-clean':       '🧘 Puhdas ruokavalio',
+    'ch-fast':        '⚡ Supernopeasti (alle 20 min)',
+    'ch-value':       '💶 Paras vastine rahalle',
+    'ch-rated':       '⭐ Parhaiten arvioidut kokit',
+    'ch-sched':       '🗓️ Aikatauluta etukäteen',
+    'ch-p1':          '€ Alle 8 €',
+    'ch-p2':          '€€ 8–15 €',
+    'ch-p3':          '€€€ 15 € +',
+    /* chef onboarding */
+    'och-badge':      'KOKIN REKISTERÖINTI',
+    'och1-h':         'Kokkaa. Ansaitse. Menesty.',
+    'och1-p':         'Muuta keittiösi ja reseptisi oikeaksi tulolähteeksi. LEAD yhdistää sinut suoraan nälkäisiin asiakkaisiin lähialueellasi.',
+    'och1-b1':        'Aseta oma menu, aikataulut ja hinnat',
+    'och1-b2':        'Tilitykset suoraan pankkitilillesi',
+    'och1-b3':        'LEAD hoitaa logistiikan ja maksut',
+    'och1-btn':       'Hae kokin paikkaa →',
+    'och2-h':         'Kerro keittiöstäsi',
+    'och2-p':         'Tämä näkyy julkisessa kokkilprofiilissasi.',
+    'och2-brand-lbl': 'KEITTIÖN / BRÄNDIN NIMI',
+    'och2-brand-ph':  'esim. Ainon Pohjoismainen keittiö',
+    'och2-name-lbl':  'KOKO NIMESI',
+    'och2-name-ph':   'Oikeudellinen nimi KYC-tarkistusta varten',
+    'och2-bio-lbl':   'LYHYT ESITTELY',
+    'och2-bio-ph':    'Kerro asiakkaille, kuka olet...',
+    'och2-type-lbl':  'KEITTIÖTYYPPI',
+    'och2-home':      '🏠 Kotikeittiö',
+    'och2-commercial':'🍳 Ammattikeittiö',
+    'och2-ghost':     '🚚 Ghost kitchen',
+    'och3-h':         'Keittiösi ruokakulttuurit ja erikoisuudet',
+    'och3-p':         'Valitse, missä keittiösi on parhaimmillaan.',
+    'och3-cuisine-lbl':'RUOKAKULTTUURIT',
+    'och3-diet-lbl':  'RUOKAVALIOERITYISYYDET',
+    'och4-h':         'Henkilöllisyys ja sertifioinnit',
+    'och4-p':         'Vaaditaan kaikilta kokeilta. Asiakirjat tarkistetaan 24 tunnin sisällä.',
+    'och4-btn':       'Lähetä tarkistukseen →',
+    'och5-h':         'Aseta saatavuutesi',
+    'och5-p':         'Valitse, milloin olet avoinna tilauksille.',
+    'och5-instant':   'Automaattinen hyväksyntä',
+    'och5-instant-sub':'Hyväksy tilaukset automaattisesti ilman manuaalista tarkistusta',
+    'och5-sched':     'Aikataulutetut tilaukset',
+    'och5-sched-sub': 'Hyväksy tilaukset, jotka tehdään yli 2 tuntia etukäteen',
+    'och6-btn':       '🚀 Lähetä hakemus',
+    'och7-h':         'Hakemus lähetetty!',
+    'och7-p':         'KYC-asiakirjat tarkistetaan 24 tunnin sisällä. Saat sähköpostia, kun sinut on hyväksytty.',
+    'och7-status-label':'HAKEMUKSEN TILA',
+    'och7-s1':        'Profiili luotu',
+    'och7-s2':        'Ruokakulttuurit ja saatavuus asetettu',
+    'och7-s3':        'KYC-tarkistus — odottaa',
+    'och7-s4':        'Kokkilprofiili julkaistu',
+    'och7-btn':       'Näytä kokin hallintapaneeli',
+    /* courier onboarding */
+    'oor-badge':      'KURIIRIEN REKISTERÖINTI',
+    'oor1-h':         'Toimita. Ansaitse. Missä vain.',
+    'oor1-p':         'Hyväksy ruoan toimitustoimeksiantoja alueellasi. Töitä milloin haluat, ansaitset mitä ansaitset.',
+    'oor1-b1':        'Reaaliaikainen sijaintipohjainen haku',
+    'oor1-b2':        'Läpinäkyvä toimeksiantohinnoittelu',
+    'oor1-b3':        'Viikoittaiset tilitykset, ei piilomaksuja',
+    'oor1-btn':       'Hae kuriiriksi →',
+    'oor2-h':         'Mikä on kulkuneuvosi?',
+    'oor2-p':         'Kulkuneuvotyyppi määrittää toimeksiantojen saatavuuden ja palkkatason.',
+    'oor2-tier-lbl':  'KULKUNEUVOTASOT',
+    'oor2-t1':        'Ekotaso · enintään 3 km',
+    'oor2-t2':        'Perustaso · enintään 8 km',
+    'oor2-t3':        'Premium · enintään 15 km',
+    'oor3-h':         'Henkilötiedot',
+    'oor3-p':         'Käytetään henkilöllisyytesi varmentamiseen ja tilityksiä varten.',
+    'oor4-h':         'Asiakirjojen tarkistus',
+    'oor4-enc':       '256-bittinen salaus · Onfido KYC',
+    'oor4-id-sub':    'Etu- ja takapuoli tarvittaessa',
+    'oor4-lic-sub':   'Vaaditaan skootteri- ja autotasoille',
+    'oor4-selfie-sub':'Pidä henkilöllisyystodistus kasvojesi vieressä',
+    'oor4-ins-sub':   'Voimassa oleva vakuutustodistus',
+    'oor4-btn':       'Lähetä asiakirjat →',
+    'oor5-btn':       'Lähetä hakemus →',
+    'oor6-h':         'Hakemus vastaanotettu!',
+    'oor6-p':         'Sinut varmennetaan 24 tunnin sisällä. Kun sinut on hyväksytty, voit mennä online ja alkaa hyväksyä toimeksiantoja.',
+    'oor6-status-label':'KURIILIN HAKEMUKSEN TILA',
+    'oor6-s1':        'Ajoneuvo rekisteröity',
+    'oor6-s2':        'Asiakirjat lähetetty',
+    'oor6-s3':        'KYC-tarkistus — odottaa',
+    'oor6-s4':        'Tutkasignaali aktivoitu',
+    'oor6-btn':       'Näytä kuriiripaneeli',
+    /* KYC doc names */
+    'kyc-id':         'Henkilöllisyystodistus tai passi',
+    'kyc-id-sub':     'JPG, PNG tai PDF · enintään 5 Mt',
+    'kyc-food':       'Elintarvikehygieniapassi',
+    'kyc-food-sub':   'Hygieniapassi tai vastaava',
+    'kyc-photo':      'Kuva keittiöstä',
+    'kyc-photo-sub':  'Selkeä kuva keittiötilastasi',
+    'kyc-tax':        'Verokortti tai Y-tunnus',
+    'kyc-tax-sub':    'Suomalainen Y-tunnus tai vastaava',
+    'kyc-enc':        'Päästä päähän salattu Onfido-palvelulla',
+    'kyc-licence':    'Ajokortti',
+    'kyc-selfie':     'Live-kasvotunnistus',
+    'kyc-insurance':  'Ajoneuvovakuutus',
+    /* shared payout */
+    'payout-h':       'Tiliasetukset',
+    'payout-p-chef':  'Tilitykset joka maanantai pankkitilillesi.',
+    'payout-p-cour':  'Ansiot tilitetään joka maanantai.',
+    'lbl-iban':       'IBAN',
+    'lbl-accholder':  'TILINOMISTAJAN NIMI',
+    'lbl-accholder-ph':'Nimi kuten pankkitilillä',
+    'earn-title':     '💰 LEADIN KOKILLE MAKSAMISEN MALLI',
+    'earn-commission':'Alustan komissio',
+    'earn-processing':'Maksunvälityspalkkio',
+    'earn-keep':      'Sinulle jää',
+    'bounty-title':   '📊 TOIMEKSIANTORAKENNE',
+    'bounty-base':    'Perustoimituskorvaus',
+    'bounty-km':      'Kilometrikorvaus',
+    'bounty-avg':     'Keskimatka (Helsinki)',
+    'zone-lbl':       'HALUAMASI TOIMITUSALUE (KM)',
+    'veh-bicycle':    'Polkupyörä',
+    'veh-scooter':    'Skootteri',
+    'veh-car':        'Auto',
+    /* labels */
+    'lbl-firstname':  'ETUNIMI',
+    'lbl-lastname':   'SUKUNIMI',
+    'lbl-phone':      'PUHELINNUMERO',
+    'lbl-address':    'KOTIOSOITE',
+    'lbl-address-ph': 'Katu, kaupunki, postinumero',
+    /* misc */
+    'sent-admin':     '✓ Tiedot lähetetty hallintapaneeliin',
+    'legend-consumer':'Kuluttaja',
+    'legend-chef':    'Kokki',
+    'legend-courier': 'Kuriiri',
+    /* avail grid */
+    'avail-days':  ['Ma','Ti','Ke','To','Pe','La','Su'],
+    'avail-slots': ['Aamu','Lounas','Illallinen'],
+  }
+};
+
+/* ══════════════════════════════════════════════════════
+   LANGUAGE SWITCH
+══════════════════════════════════════════════════════ */
+let currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+  document.getElementById('btnFI').classList.toggle('active', lang === 'fi');
+
+  const strings = T[lang];
+
+  // 1. textContent nodes
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (strings[key] !== undefined) el.textContent = strings[key];
+  });
+
+  // 2. placeholder attributes
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (strings[key] !== undefined) el.placeholder = strings[key];
+  });
+
+  // 3. Rebuild availability grid in new language (preserves toggle states)
+  rebuildAvailGrid(lang);
+
+  // 4. Keep reg count accurate
+  LEAD_DB._updateRegCount();
+}
+
+/* ══════════════════════════════════════════════════════
    LEAD PLATFORM DATA LAYER
-   localStorage + BroadcastChannel bridge
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 const LEAD_CHANNEL = 'lead-platform-v1';
 let LEAD_BC = null;
 try { LEAD_BC = new BroadcastChannel(LEAD_CHANNEL); } catch(e) {}
 
-// Listen for admin panel actions (e.g., KYC approve/reject)
 if (LEAD_BC) {
-    LEAD_BC.onmessage = function(e) {
-        const msg = e.data;
-        if (msg.type === 'KYC_APPROVED') {
-            // Update home log
-            addHomeLog(`[ADMIN] KYC APPROVED: ${msg.name || msg.userId}`, 'text-emerald-400');
-        }
-        if (msg.type === 'KYC_REJECTED') {
-            addHomeLog(`[ADMIN] KYC REJECTED: ${msg.name || msg.userId}`, 'text-red-400');
-        }
-        if (msg.type === 'ADMIN_PING') {
-            // Admin is open — show connected status
-            document.getElementById('bcDot').classList.add('live');
-            document.getElementById('bcLabel').textContent = 'Admin Panel: CONNECTED ✓';
-        }
-    };
+  LEAD_BC.onmessage = function(e) {
+    const msg = e.data;
+    if (msg.type === 'KYC_APPROVED') addHomeLog((currentLang==='fi'?'[HALLINTA] KYC HYVÄKSYTTY: ':'[ADMIN] KYC APPROVED: ') + (msg.name||msg.userId), 'text-emerald-400');
+    if (msg.type === 'KYC_REJECTED') addHomeLog((currentLang==='fi'?'[HALLINTA] KYC HYLÄTTY: ':'[ADMIN] KYC REJECTED: ') + (msg.name||msg.userId), 'text-red-400');
+    if (msg.type === 'ADMIN_PING') {
+      document.getElementById('bcDot').classList.add('live');
+      document.getElementById('bcLabel').textContent = currentLang==='fi' ? 'Hallintapaneeli: YHDISTETTY ✓' : 'Admin Panel: CONNECTED ✓';
+    }
+  };
 }
 
 function addHomeLog(msg, cls) {
-    const log = document.getElementById('homeLog');
-    if (!log) return;
-    const p = document.createElement('p');
-    p.className = cls || 'text-slate-400';
-    p.textContent = '> ' + msg;
-    log.appendChild(p);
-    log.scrollTop = log.scrollHeight;
+  const log = document.getElementById('homeLog');
+  if (!log) return;
+  const p = document.createElement('p'); p.className = cls||'text-slate-400'; p.textContent = '> ' + msg;
+  log.appendChild(p); log.scrollTop = log.scrollHeight;
 }
 
 const LEAD_DB = {
-    _users:  'lead_users',
-    _events: 'lead_events',
-
-    uid()  { return 'USR-' + Math.random().toString(36).substr(2,6).toUpperCase(); },
-    eid()  { return 'EVT-' + Date.now().toString(36).toUpperCase(); },
-
-    getUsers()  { try { return JSON.parse(localStorage.getItem(this._users)  || '[]'); } catch(e) { return []; } },
-    getEvents() { try { return JSON.parse(localStorage.getItem(this._events) || '[]'); } catch(e) { return []; } },
-
-    saveUser(user) {
-        const users = this.getUsers();
-        users.push(user);
-        localStorage.setItem(this._users, JSON.stringify(users));
-        this._broadcast({ type: 'USER_REGISTERED', user });
-        this.addEvent({ type: 'ONBOARD_COMPLETE', role: user.role, user_id: user.id, name: user.name,
-            details: `${user.role.toUpperCase()} onboarding complete · KYC: ${user.kyc_status}` });
-        this._updateRegCount();
-    },
-
-    addEvent(evt) {
-        const events = this.getEvents();
-        events.unshift({ id: this.eid(), timestamp: new Date().toISOString(), ...evt });
-        if (events.length > 300) events.length = 300;
-        localStorage.setItem(this._events, JSON.stringify(events));
-        this._broadcast({ type: 'EVENT_ADDED', event: events[0] });
-    },
-
-    _broadcast(msg) {
-        if (LEAD_BC) { try { LEAD_BC.postMessage(msg); } catch(e) {} }
-    },
-
-    _updateRegCount() {
-        const n = this.getUsers().length;
-        const el = document.getElementById('regCount');
-        if (el) el.textContent = n + ' user' + (n===1?'':'s') + ' registered this session';
+  _u:'lead_users', _e:'lead_events',
+  uid()  { return 'USR-'+Math.random().toString(36).substr(2,6).toUpperCase(); },
+  getUsers()  { try{return JSON.parse(localStorage.getItem(this._u)||'[]');}catch(e){return[];} },
+  getEvents() { try{return JSON.parse(localStorage.getItem(this._e)||'[]');}catch(e){return[];} },
+  saveUser(user) {
+    const users=this.getUsers(); users.push(user);
+    localStorage.setItem(this._u,JSON.stringify(users));
+    this._broadcast({type:'USER_REGISTERED',user});
+    this.addEvent({type:'ONBOARD_COMPLETE',role:user.role,user_id:user.id,name:user.name,details:`${user.role.toUpperCase()} onboarding complete · KYC: ${user.kyc_status}`});
+    this._updateRegCount();
+  },
+  addEvent(evt) {
+    const events=this.getEvents();
+    events.unshift({id:'EVT-'+Date.now().toString(36).toUpperCase(),timestamp:new Date().toISOString(),...evt});
+    if(events.length>300) events.length=300;
+    localStorage.setItem(this._e,JSON.stringify(events));
+    this._broadcast({type:'EVENT_ADDED',event:events[0]});
+  },
+  _broadcast(msg) { if(LEAD_BC){try{LEAD_BC.postMessage(msg);}catch(e){}} },
+  _updateRegCount() {
+    const n=this.getUsers().length;
+    const el=document.getElementById('regCount');
+    if(el) {
+      const s = T[currentLang];
+      // build dynamically so the number updates
+      el.textContent = currentLang==='fi'
+        ? n+' käyttäjää rekisteröity tässä sessiossa'
+        : n+' user'+(n===1?'':'s')+' registered this session';
     }
+  }
 };
 
-// Ping admin panel on load to announce this tab
-function pingAdmin() {
-    if (LEAD_BC) { try { LEAD_BC.postMessage({ type: 'RBAC_PING' }); } catch(e) {} }
-}
-setTimeout(pingAdmin, 800);
-setInterval(pingAdmin, 10000);
+function pingAdmin() { if(LEAD_BC){try{LEAD_BC.postMessage({type:'RBAC_PING'});}catch(e){}} }
+setTimeout(pingAdmin,800); setInterval(pingAdmin,10000);
 
-/* ─── Registration helpers ───────────────────────────── */
-let _sessionConsumerNames = ['Matti K.','Hanna L.','Petri S.','Liisa M.','Jari V.','Sofia R.','Aleksi H.','Emilia T.'];
-let _sessionChefNames = ["Aino's Nordic Kitchen","Chef Dom Bakery","Juuso's Grill Lab","Priya's Spice House","Outi Home Meals"];
-let _sessionCourierNames = ['Mikko V.','Juhani P.','Sakari L.','Helmi R.','Timo K.'];
-
+/* registrations */
 function registerConsumer() {
-    const prefs = [];
-    document.querySelectorAll('#view-onboard-consumer .chip.picked').forEach(c => prefs.push(c.textContent.trim()));
-    const name = _sessionConsumerNames[Math.floor(Math.random()*_sessionConsumerNames.length)];
-    const user = {
-        id: LEAD_DB.uid(), role: 'consumer',
-        name: name,
-        kyc_status: 'none', status: 'active',
-        registered_at: new Date().toISOString(),
-        details: { preferences: prefs.length ? prefs : ['High Protein','Vegan'], location: 'Helsinki, Kallio' }
-    };
-    LEAD_DB.saveUser(user);
-    showAdminToast('✓ Consumer registered → visible in Admin Panel');
-    addHomeLog('New consumer registered: ' + name, 'text-emerald-400');
+  const prefs=[];
+  document.querySelectorAll('#view-onboard-consumer .chip.picked').forEach(c=>prefs.push(c.textContent.trim()));
+  const names=['Matti K.','Hanna L.','Petri S.','Liisa M.','Jari V.'];
+  const name=names[Math.floor(Math.random()*names.length)];
+  LEAD_DB.saveUser({id:LEAD_DB.uid(),role:'consumer',name,kyc_status:'none',status:'active',registered_at:new Date().toISOString(),details:{preferences:prefs.length?prefs:['High Protein'],location:'Helsinki, Kallio'}});
+  showAdminToast(currentLang==='fi'?'✓ Kuluttaja rekisteröity → hallintapaneelissa':'✓ Consumer registered → visible in Admin Panel');
+  addHomeLog((currentLang==='fi'?'Uusi kuluttaja: ':'New consumer: ')+name,'text-emerald-400');
 }
-
 function registerChef() {
-    const brand = document.getElementById('chefBrandName')?.value || _sessionChefNames[Math.floor(Math.random()*_sessionChefNames.length)];
-    const legalName = document.getElementById('chefFullName')?.value || 'Chef Applicant';
-    const cuisine = [];
-    document.querySelectorAll('#cuisineTags .cuisine-tag.on').forEach(c => cuisine.push(c.textContent.trim()));
-    const user = {
-        id: LEAD_DB.uid(), role: 'chef',
-        name: brand || legalName,
-        legal_name: legalName,
-        kyc_status: 'pending', status: 'pending_review',
-        registered_at: new Date().toISOString(),
-        details: { cuisine: cuisine.length ? cuisine : ['Nordic','Health Bowls'], kitchen_type: 'Home Kitchen',
-            docs_submitted: ['National ID','Food Handler Certificate','Kitchen Photo','Tax ID'] }
-    };
-    LEAD_DB.saveUser(user);
-    showAdminToast('✓ Chef application submitted → KYC queue in Admin Panel');
-    addHomeLog('Chef application: ' + user.name + ' | KYC PENDING', 'text-amber-400');
+  const brand=document.getElementById('chefBrandName')?.value||'Chef Applicant';
+  const legalName=document.getElementById('chefFullName')?.value||'Chef Applicant';
+  const cuisine=[];
+  document.querySelectorAll('#cuisineTags .cuisine-tag.on').forEach(c=>cuisine.push(c.textContent.trim()));
+  LEAD_DB.saveUser({id:LEAD_DB.uid(),role:'chef',name:brand||legalName,legal_name:legalName,kyc_status:'pending',status:'pending_review',registered_at:new Date().toISOString(),details:{cuisine:cuisine.length?cuisine:['Nordic'],kitchen_type:'Home Kitchen',docs_submitted:['National ID','Food Handler Certificate','Kitchen Photo','Tax ID']}});
+  showAdminToast(currentLang==='fi'?'✓ Kokin hakemus lähetetty → KYC-jono hallintapaneelissa':'✓ Chef application submitted → KYC queue in Admin Panel');
+  addHomeLog((currentLang==='fi'?'Kokin hakemus: ':'Chef application: ')+(brand||legalName)+' | KYC PENDING','text-amber-400');
 }
-
 function registerCourier() {
-    const first = document.getElementById('courierFirstName')?.value || '';
-    const last  = document.getElementById('courierLastName')?.value  || '';
-    const name  = (first + ' ' + last).trim() || _sessionCourierNames[Math.floor(Math.random()*_sessionCourierNames.length)];
-    const vehicle = _selectedVehicle || 'Scooter';
-    const zone = document.querySelector('#zoneSelector .zone-ring.chosen')?.textContent || '3';
-    const user = {
-        id: LEAD_DB.uid(), role: 'courier',
-        name: name,
-        kyc_status: 'pending', status: 'pending_review',
-        registered_at: new Date().toISOString(),
-        details: { vehicle_type: vehicle, zone_km: parseInt(zone),
-            docs_submitted: ['National ID','Driving Licence','Live Selfie','Vehicle Insurance'] }
-    };
-    LEAD_DB.saveUser(user);
-    showAdminToast('✓ Courier application submitted → KYC queue in Admin Panel');
-    addHomeLog('Courier application: ' + name + ' · ' + vehicle + ' | KYC PENDING', 'text-blue-400');
+  const first=document.getElementById('courierFirstName')?.value||'';
+  const last=document.getElementById('courierLastName')?.value||'';
+  const name=(first+' '+last).trim()||'Kuriiri Hakija';
+  const vehicle=_selectedVehicle||'Scooter';
+  const zone=document.querySelector('#zoneSelector .zone-ring.chosen')?.textContent||'3';
+  LEAD_DB.saveUser({id:LEAD_DB.uid(),role:'courier',name,kyc_status:'pending',status:'pending_review',registered_at:new Date().toISOString(),details:{vehicle_type:vehicle,zone_km:parseInt(zone),docs_submitted:['National ID','Driving Licence','Live Selfie','Vehicle Insurance']}});
+  showAdminToast(currentLang==='fi'?'✓ Kuriilin hakemus lähetetty → hallintapaneelissa':'✓ Courier application submitted → Admin Panel');
+  addHomeLog((currentLang==='fi'?'Kuriilin hakemus: ':'Courier application: ')+name+' · '+vehicle+' | KYC PENDING','text-blue-400');
 }
-
-let _selectedVehicle = 'Scooter';
 
 function showAdminToast(msg) {
-    const t = document.getElementById('adminToast');
-    if (!t) return;
-    t.textContent = msg;
-    t.classList.add('visible');
-    setTimeout(() => t.classList.remove('visible'), 4500);
+  const t=document.getElementById('adminToast'); if(!t)return;
+  t.textContent=msg; t.classList.add('visible');
+  setTimeout(()=>t.classList.remove('visible'),4500);
 }
 
-/* ─── Clock ──────────────────────────────────────────── */
+/* ── Clock ── */
 (function tick(){
-    const t = new Date();
-    const el = document.getElementById('statusTime');
-    if(el) el.textContent = String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
-    setTimeout(tick,10000);
+  const t=new Date(); const el=document.getElementById('statusTime');
+  if(el) el.textContent=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+  setTimeout(tick,10000);
 })();
 
-/* ─── View switcher ──────────────────────────────────── */
+/* ── View switcher ── */
 function switchView(name) {
-    document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden'));
-    const target = document.getElementById('view-' + name);
-    if (target) target.classList.remove('hidden');
-    document.querySelectorAll('.role-btn').forEach(b => {
-        b.classList.remove('bg-emerald-600','bg-amber-500','bg-blue-600','text-white','text-slate-900');
-        b.classList.add('bg-slate-800','text-slate-300');
-    });
-    const ab = document.getElementById('btn-' + name);
-    if (!ab) return;
-    ab.classList.remove('bg-slate-800','text-slate-300');
-    if (name.includes('consumer')) ab.classList.add('bg-emerald-600','text-white');
-    else if (name.includes('chef')) ab.classList.add('bg-amber-500','text-slate-900');
-    else if (name.includes('courier')) ab.classList.add('bg-blue-600','text-white');
-    else ab.classList.add('bg-emerald-600','text-white');
+  document.querySelectorAll('.app-view').forEach(v=>v.classList.add('hidden'));
+  const tgt=document.getElementById('view-'+name); if(tgt) tgt.classList.remove('hidden');
+  document.querySelectorAll('.role-btn').forEach(b=>{
+    b.classList.remove('bg-emerald-600','bg-amber-500','bg-blue-600','text-white','text-slate-900');
+    b.classList.add('bg-slate-800','text-slate-300');
+  });
+  const ab=document.getElementById('btn-'+name); if(!ab)return;
+  ab.classList.remove('bg-slate-800','text-slate-300');
+  if(name.includes('consumer')) ab.classList.add('bg-emerald-600','text-white');
+  else if(name.includes('chef')) ab.classList.add('bg-amber-500','text-slate-900');
+  else if(name.includes('courier')) ab.classList.add('bg-blue-600','text-white');
+  else ab.classList.add('bg-emerald-600','text-white');
 }
 
-/* ─── Chip / cuisine toggles ─────────────────────────── */
+/* ── Chip / cuisine ── */
 function toggleChip(el)    { el.classList.toggle('picked'); }
 function toggleCuisine(el) { el.classList.toggle('on'); }
 
-/* ─── Vehicle select ─────────────────────────────────── */
-function selectVehicle(el, type) {
-    document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('picked'));
-    el.classList.add('picked');
-    _selectedVehicle = type.charAt(0).toUpperCase() + type.slice(1);
+/* ── Vehicle ── */
+let _selectedVehicle='Scooter';
+function selectVehicle(el,type) {
+  document.querySelectorAll('.vehicle-card').forEach(c=>c.classList.remove('picked'));
+  el.classList.add('picked');
+  _selectedVehicle=type.charAt(0).toUpperCase()+type.slice(1);
 }
 
-/* ─── Zone select ────────────────────────────────────── */
+/* ── Zone ── */
 function selectZone(el) {
-    document.querySelectorAll('.zone-ring').forEach(z => z.classList.remove('chosen'));
-    el.classList.add('chosen');
+  document.querySelectorAll('.zone-ring').forEach(z=>z.classList.remove('chosen'));
+  el.classList.add('chosen');
 }
 
-/* ─── Mock upload ────────────────────────────────────── */
-function mockUpload(el, label) {
-    el.classList.add('uploaded');
-    el.querySelector('.u-text').textContent = label + ' — uploaded ✓';
-    el.querySelector('.ml-auto').textContent = '✓';
-    el.querySelector('.ml-auto').style.color = '#34d399';
+/* ── Mock upload ── */
+function mockUpload(el,label) {
+  el.classList.add('uploaded');
+  const txt=el.querySelector('.u-text'); if(txt) txt.textContent=label+' — '+( currentLang==='fi'?'ladattu ✓':'uploaded ✓');
+  const ico=el.querySelector('.ml-auto'); if(ico){ico.textContent='✓';ico.style.color='#34d399';}
 }
 
-/* ─── Step dots ──────────────────────────────────────── */
-function renderDots(prefix, total, current) {
-    for (let i = 1; i <= total + 1; i++) {
-        const el = document.getElementById(prefix + '-dots-' + i);
-        if (!el) continue;
-        el.innerHTML = '';
-        for (let j = 1; j <= total; j++) {
-            const d = document.createElement('div');
-            d.className = 'step-dot' + (j === current ? ' active' : j < current ? ' done' : '');
-            el.appendChild(d);
-        }
+/* ── Step dots ── */
+function renderDots(prefix,total,current) {
+  for(let i=1;i<=total+1;i++){
+    const el=document.getElementById(prefix+'-dots-'+i); if(!el)continue;
+    el.innerHTML='';
+    for(let j=1;j<=total;j++){
+      const d=document.createElement('div');
+      d.className='step-dot'+(j===current?' active':j<current?' done':'');
+      el.appendChild(d);
     }
+  }
 }
 
-/* ─── Consumer flow ──────────────────────────────────── */
-const OC_TOTAL = 5; let ocCurrent = 1;
-function ocGo(n, dir) {
-    document.getElementById('oc-step-'+ocCurrent).classList.add('hidden');
-    ocCurrent = n;
-    const el = document.getElementById('oc-step-'+n);
-    el.classList.remove('hidden','step-enter','step-back');
-    void el.offsetWidth;
-    el.classList.add(dir==='back'?'step-back':'step-enter');
-    renderDots('oc', OC_TOTAL, ocCurrent);
+/* ── Step navigators ── */
+const OC_TOTAL=5; let ocCurrent=1;
+function ocGo(n,dir){
+  document.getElementById('oc-step-'+ocCurrent).classList.add('hidden'); ocCurrent=n;
+  const el=document.getElementById('oc-step-'+n);
+  el.classList.remove('hidden','step-enter','step-back'); void el.offsetWidth;
+  el.classList.add(dir==='back'?'step-back':'step-enter'); renderDots('oc',OC_TOTAL,ocCurrent);
 }
-function ocNext(n) { ocGo(n,'fwd'); }
-function ocBack(n) { ocGo(n,'back'); }
+function ocNext(n){ocGo(n,'fwd');} function ocBack(n){ocGo(n,'back');}
 
-/* ─── Chef flow ──────────────────────────────────────── */
-const OCH_TOTAL = 6; let ochCurrent = 1;
-function ochGo(n, dir) {
-    document.getElementById('och-step-'+ochCurrent).classList.add('hidden');
-    ochCurrent = n;
-    const el = document.getElementById('och-step-'+n);
-    el.classList.remove('hidden','step-enter','step-back');
-    void el.offsetWidth;
-    el.classList.add(dir==='back'?'step-back':'step-enter');
-    if (n <= OCH_TOTAL) renderDots('och', OCH_TOTAL, n);
+const OCH_TOTAL=6; let ochCurrent=1;
+function ochGo(n,dir){
+  document.getElementById('och-step-'+ochCurrent).classList.add('hidden'); ochCurrent=n;
+  const el=document.getElementById('och-step-'+n);
+  el.classList.remove('hidden','step-enter','step-back'); void el.offsetWidth;
+  el.classList.add(dir==='back'?'step-back':'step-enter');
+  if(n<=OCH_TOTAL) renderDots('och',OCH_TOTAL,n);
 }
-function ochNext(n) { ochGo(n,'fwd'); }
-function ochBack(n) { ochGo(n,'back'); }
-function ochGoLive() {
-    registerChef();
-    document.getElementById('och-step-'+ochCurrent).classList.add('hidden');
-    const el = document.getElementById('och-step-7');
-    el.classList.remove('hidden'); el.classList.add('step-enter');
+function ochNext(n){ochGo(n,'fwd');} function ochBack(n){ochGo(n,'back');}
+function ochGoLive(){
+  registerChef();
+  document.getElementById('och-step-'+ochCurrent).classList.add('hidden');
+  const el=document.getElementById('och-step-7'); el.classList.remove('hidden'); el.classList.add('step-enter');
 }
 
-/* ─── Courier flow ───────────────────────────────────── */
-const OOR_TOTAL = 5; let oorCurrent = 1;
-function oorGo(n, dir) {
-    document.getElementById('oor-step-'+oorCurrent).classList.add('hidden');
-    oorCurrent = n;
-    const el = document.getElementById('oor-step-'+n);
-    el.classList.remove('hidden','step-enter','step-back');
-    void el.offsetWidth;
-    el.classList.add(dir==='back'?'step-back':'step-enter');
-    if (n <= OOR_TOTAL) renderDots('oor', OOR_TOTAL, n);
+const OOR_TOTAL=5; let oorCurrent=1;
+function oorGo(n,dir){
+  document.getElementById('oor-step-'+oorCurrent).classList.add('hidden'); oorCurrent=n;
+  const el=document.getElementById('oor-step-'+n);
+  el.classList.remove('hidden','step-enter','step-back'); void el.offsetWidth;
+  el.classList.add(dir==='back'?'step-back':'step-enter');
+  if(n<=OOR_TOTAL) renderDots('oor',OOR_TOTAL,n);
 }
-function oorNext(n) { oorGo(n,'fwd'); }
-function oorBack(n) { oorGo(n,'back'); }
+function oorNext(n){oorGo(n,'fwd');} function oorBack(n){oorGo(n,'back');}
 
-/* ─── Avail grid (chef step 5) ───────────────────────── */
-(function buildAvailGrid(){
-    const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const slots=['Morning','Lunch','Dinner'];
-    const grid=document.getElementById('avail-grid');
-    if(!grid) return;
-    const hdr=document.createElement('div');
-    hdr.style.cssText='display:grid;grid-template-columns:40px repeat(3,1fr);gap:4px;margin-bottom:4px;';
-    hdr.innerHTML='<div></div>'+slots.map(s=>`<div style="font-size:9px;color:#475569;font-weight:700;text-align:center;">${s}</div>`).join('');
-    grid.appendChild(hdr);
-    days.forEach(day=>{
-        const row=document.createElement('div');
-        row.style.cssText='display:grid;grid-template-columns:40px repeat(3,1fr);gap:4px;';
-        let html=`<div style="font-size:9px;color:#64748b;font-weight:700;display:flex;align-items:center;">${day}</div>`;
-        slots.forEach(()=>{
-            const on=Math.random()>0.5?' on':'';
-            html+=`<div class="avail-slot${on}" onclick="this.classList.toggle('on')">${on?'✓':'+'}</div>`;
-        });
-        row.innerHTML=html; grid.appendChild(row);
+/* ── Avail grid ── */
+function rebuildAvailGrid(lang) {
+  const grid=document.getElementById('avail-grid'); if(!grid)return;
+  const days=T[lang]['avail-days']; const slots=T[lang]['avail-slots'];
+  // capture current toggle states before rebuild
+  const states=[];
+  grid.querySelectorAll('.avail-slot').forEach(s=>states.push(s.classList.contains('on')));
+  grid.innerHTML='';
+  const hdr=document.createElement('div');
+  hdr.style.cssText='display:grid;grid-template-columns:40px repeat(3,1fr);gap:4px;margin-bottom:4px;';
+  hdr.innerHTML='<div></div>'+slots.map(s=>`<div style="font-size:9px;color:#475569;font-weight:700;text-align:center;">${s}</div>`).join('');
+  grid.appendChild(hdr);
+  let idx=0;
+  days.forEach(day=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:40px repeat(3,1fr);gap:4px;';
+    let html=`<div style="font-size:9px;color:#64748b;font-weight:700;display:flex;align-items:center;">${day}</div>`;
+    slots.forEach(()=>{
+      const on=(states[idx]!==undefined?states[idx]:Math.random()>0.5);
+      html+=`<div class="avail-slot${on?' on':''}" onclick="this.classList.toggle('on')">${on?'✓':'+'}</div>`;
+      idx++;
     });
-})();
+    row.innerHTML=html; grid.appendChild(row);
+  });
+}
 
-/* ─── Init ───────────────────────────────────────────── */
-renderDots('oc',  OC_TOTAL,  1);
-renderDots('och', OCH_TOTAL, 1);
-renderDots('oor', OOR_TOTAL, 1);
+/* ── Init ── */
+rebuildAvailGrid('en');
+renderDots('oc',OC_TOTAL,1);
+renderDots('och',OCH_TOTAL,1);
+renderDots('oor',OOR_TOTAL,1);
 LEAD_DB._updateRegCount();
+setLang('en');
 </script>
 </body>
 </html>

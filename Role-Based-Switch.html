@@ -39,6 +39,16 @@
 .progress-bar{height:3px;border-radius:3px;background:#1e293b;overflow:hidden;}
 .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#34d399);transition:width 0.4s ease;}
 *{box-sizing:border-box;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#334155;border-radius:2px;}
+/* ── chef live feed ── */
+@keyframes chefCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.chef-live-card{animation:chefCardIn 0.22s ease both;}
+.chef-skeleton{
+  background:#1e293b;border:1px solid #334155;border-radius:12px;
+  padding:14px;
+}
+@keyframes chefSkeletonPulse{0%,100%{opacity:1}50%{opacity:0.45}}
+.chef-skeleton{animation:chefSkeletonPulse 1.4s ease-in-out infinite;}
+
 /* lang toggle */
 .lang-btn{background:transparent;border:1px solid #1a2540;color:#5c7aaa;padding:3px 9px;border-radius:4px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;}
 .lang-btn:hover{border-color:#00e5ff;color:#00e5ff;}
@@ -329,19 +339,37 @@
 
   <!-- ── Chef Dashboard ── -->
   <div id="view-chef" class="app-view hidden flex-1 p-4 flex flex-col bg-slate-900 overflow-y-auto no-scrollbar">
-    <h2 class="text-2xl font-bold text-white mb-2 mt-2" data-i18n="chef-title">Active Pipeline</h2>
-    <p class="text-xs text-emerald-500 mb-6 font-mono" data-i18n="chef-status">Status: ONLINE &amp; ACCEPTING</p>
-    <div class="space-y-4">
-      <div class="bg-slate-800 rounded-xl p-4 border border-emerald-500/30 relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-        <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1042</span><span class="text-xs font-bold text-emerald-400" data-i18n="chef-justnow">Just Now</span></div>
-        <h3 class="font-bold text-white mb-1">2x Dom Bakery Classic</h3>
-        <p class="text-xs text-slate-400 mb-4"><span data-i18n="chef-value">Value</span>: €24.00</p>
-        <button class="w-full bg-emerald-600 py-3 rounded-lg text-sm font-bold text-white" data-i18n="chef-accept">Accept &amp; Prep</button>
+
+    <!-- Header row with live indicator -->
+    <div class="flex justify-between items-center mt-2 mb-1">
+      <h2 class="text-2xl font-bold text-white" data-i18n="chef-title">Active Pipeline</h2>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="chef-poll-dot"></span>
+        <span class="text-[9px] font-mono text-emerald-500" id="chef-poll-label">LIVE</span>
       </div>
+    </div>
+    <p class="text-xs text-emerald-500 mb-4 font-mono" data-i18n="chef-status">Status: ONLINE &amp; ACCEPTING</p>
+
+    <!-- ── Incoming orders: populated by fetchPendingIndentsForChef() ── -->
+    <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2 uppercase" data-i18n="chef-incoming-label">Awaiting Your Acceptance</p>
+    <div id="chef-incoming-feed" class="space-y-3 mb-5">
+      <!-- skeleton shown before first DB response -->
+      <div class="chef-skeleton">
+        <div class="h-3 w-20 bg-slate-700 rounded mb-2"></div>
+        <div class="h-4 w-36 bg-slate-700 rounded mb-3"></div>
+        <div class="h-9 w-full bg-slate-700/50 rounded-lg"></div>
+      </div>
+    </div>
+
+    <!-- ── Currently prepping (static placeholder) ── -->
+    <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2 uppercase" data-i18n="chef-prepping-label">Currently Prepping</p>
+    <div id="chef-prepping-feed" class="space-y-3">
       <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 relative overflow-hidden opacity-60">
-        <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
-        <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1041</span><span class="text-xs font-bold text-amber-400" data-i18n="chef-prepping">Prepping</span></div>
+        <div class="absolute top-0 left-0 w-1 h-full bg-amber-500 rounded-l-xl"></div>
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white">#IND-1041</span>
+          <span class="text-xs font-bold text-amber-400" data-i18n="chef-prepping">Prepping</span>
+        </div>
         <h3 class="font-bold text-white mb-1">1x Keto Power Steak</h3>
         <button class="w-full bg-slate-700 py-2 rounded-lg text-sm font-bold text-white mt-2" data-i18n="chef-markready">Mark Ready for Courier</button>
       </div>
@@ -899,6 +927,8 @@ const T = {
     'con-f-sched':    'Schedule for Later 🗓️',
     'con-add':        'Add to Indent',
     /* chef dashboard */
+    'chef-incoming-label': 'Awaiting Your Acceptance',
+    'chef-prepping-label': 'Currently Prepping',
     'chef-title':     'Active Pipeline',
     'chef-status':    'Status: ONLINE & ACCEPTING',
     'chef-justnow':   'Just Now',
@@ -1137,6 +1167,8 @@ const T = {
     'con-f-sched':    'Aikatauluta myöhemmäksi 🗓️',
     'con-add':        'Lisää tilaukseen',
     /* chef dashboard */
+    'chef-incoming-label': 'Odottaa hyväksyntääsi',
+    'chef-prepping-label': 'Valmisteilla',
     'chef-title':     'Aktiiviset tilaukset',
     'chef-status':    'Tila: ONLINE & VASTAANOTTAA',
     'chef-justnow':   'Juuri nyt',
@@ -1485,6 +1517,9 @@ function switchView(name) {
   else if(name.includes('courier')) ab.classList.add('bg-blue-600','text-white');
   else ab.classList.add('bg-emerald-600','text-white');
   if(name === 'support') initChat();
+  if(name === 'chef') {
+    if(typeof fetchPendingIndentsForChef === 'function') fetchPendingIndentsForChef();
+  }
 }
 
 /* ── Chip / cuisine ── */
@@ -1988,54 +2023,45 @@ renderDots('oor',OOR_TOTAL,1);
 LEAD_DB._updateRegCount();
 setLang('en');
 
-/* ═══════════════════════════════════════════════════════
-   SUPABASE LIVE INTEGRATION — Role-Based-Switch
-   Client is initialised lazily inside createLiveIndent
-   so a CDN failure NEVER kills the rest of the app.
-═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   SUPABASE — lazy singleton client
+   Never initialised at page load — only when first used.
+   This guarantees a CDN failure cannot kill any UI function.
+═══════════════════════════════════════════════════════════ */
 const SUPA_URL = 'https://ycvirrqvudvbwrvvwxof.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljdmlycnF2dWR2YndydnZ3eG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MjU0NzksImV4cCI6MjA5MjMwMTQ3OX0.3Dk9IGpHUIBA8fpFg9WpFViKzfADt1D7NMBYSfbnWps';
-let _supaClient = null; // lazy singleton — never touched at page load
+let _supaClient = null;
 
 function getSupabase() {
   if (_supaClient) return _supaClient;
-  if (!window.supabase) {
-    throw new Error('Supabase CDN not loaded. Check your internet connection.');
-  }
+  if (!window.supabase) throw new Error('Supabase CDN not loaded. Check connection.');
   _supaClient = window.supabase.createClient(SUPA_URL, SUPA_KEY);
   return _supaClient;
 }
 
+/* ─── TASK 0: Consumer — createLiveIndent ───────────────── */
 async function createLiveIndent(itemName, price, chefName) {
   const allBtns = document.querySelectorAll('[data-i18n="con-add"]');
-  allBtns.forEach(b => { b.disabled = true; b.textContent = '⏳ Sending…'; });
-
+  allBtns.forEach(b => { b.disabled = true; b.textContent = '⏳ ' + (currentLang === 'fi' ? 'Lähetetään…' : 'Sending…'); });
   try {
-    const db = getSupabase(); // init only when actually needed
-    const { error } = await db
-      .from('indents_table')
-      .insert([{
-        item_name:          itemName,
-        price:              price,
-        chef_business_name: chefName,
-        status:             'Awaiting Chef'
-      }]);
-
-    if (error) {
-      console.error('[LEAD] Supabase insert error:', error);
-      alert('❌ Could not send indent: ' + (error.message || 'Unknown error'));
-    } else {
-      console.log('[LEAD] Indent created:', { itemName, price, chefName });
-      alert('✅ Indent Sent to Live Dispatch!\n\n' + itemName + ' — €' + price + '\nStatus: Awaiting Chef');
-      try {
-        const bc = new BroadcastChannel('lead-platform-v1');
-        bc.postMessage({ type: 'LIVE_INDENT_CREATED', item: itemName, price, chef: chefName });
-        bc.close();
-      } catch(e) {}
-    }
+    const db = getSupabase();
+    const { error } = await db.from('indents_table').insert([{
+      item_name:          itemName,
+      price:              price,
+      chef_business_name: chefName,
+      status:             'Awaiting Chef'
+    }]);
+    if (error) throw error;
+    console.log('[LEAD Consumer] Indent created:', itemName);
+    alert('✅ ' + (currentLang === 'fi' ? 'Tilaus lähetetty!' : 'Indent Sent to Live Dispatch!') + '\n\n' + itemName + ' — €' + price + '\nStatus: Awaiting Chef');
+    try {
+      const bc = new BroadcastChannel('lead-platform-v1');
+      bc.postMessage({ type: 'LIVE_INDENT_CREATED', item: itemName, price, chef: chefName });
+      bc.close();
+    } catch(e) {}
   } catch (err) {
-    console.error('[LEAD] Unexpected error:', err);
-    alert('❌ Error: ' + err.message);
+    console.error('[LEAD Consumer] Insert error:', err);
+    alert('❌ ' + (currentLang === 'fi' ? 'Virhe: ' : 'Error: ') + err.message);
   } finally {
     allBtns.forEach(b => {
       b.disabled = false;
@@ -2043,6 +2069,138 @@ async function createLiveIndent(itemName, price, chefName) {
     });
   }
 }
+
+/* ─── TASK 1: Chef — fetchPendingIndentsForChef ─────────── */
+function _relTime(iso) {
+  if (!iso) return 'just now';
+  const m = Math.floor((Date.now() - new Date(iso)) / 60000);
+  if (m < 1) return currentLang === 'fi' ? 'juuri nyt' : 'just now';
+  if (m < 60) return m + (currentLang === 'fi' ? ' min sitten' : ' min ago');
+  return Math.floor(m / 60) + (currentLang === 'fi' ? 'h sitten' : 'h ago');
+}
+
+async function fetchPendingIndentsForChef() {
+  const feed = document.getElementById('chef-incoming-feed');
+  const dot  = document.getElementById('chef-poll-dot');
+  const lbl  = document.getElementById('chef-poll-label');
+  if (!feed) return;
+
+  try {
+    const db = getSupabase();
+    const { data: indents, error } = await db
+      .from('indents_table')
+      .select('id, item_name, price, chef_business_name, created_at, status')
+      .eq('status', 'Awaiting Chef')
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    // Green dot — connected
+    if (dot) { dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse'; }
+    if (lbl) { lbl.textContent = 'LIVE'; lbl.style.color = '#10b981'; }
+
+    if (!indents || indents.length === 0) {
+      feed.innerHTML = `
+        <div style="text-align:center;padding:24px 0;color:#475569;font-size:11px;">
+          <div style="font-size:22px;margin-bottom:6px;">✅</div>
+          ${currentLang === 'fi' ? 'Ei uusia tilauksia. Hyvä työ!' : 'No pending orders. All caught up!'}
+        </div>`;
+      return;
+    }
+
+    feed.innerHTML = indents.map((indent, i) => {
+      const price    = indent.price != null ? '€' + Number(indent.price).toFixed(2) : '—';
+      const name     = indent.item_name || (currentLang === 'fi' ? 'Tuntematon tuote' : 'Unknown item');
+      const when     = _relTime(indent.created_at);
+      const shortId  = indent.id ? String(indent.id).replace(/-/g,'').slice(-6).toUpperCase() : '——';
+      const btnLabel = currentLang === 'fi' ? '✓ Hyväksy tilaus' : '✓ Accept Order';
+
+      return `
+        <div class="chef-live-card bg-slate-800 rounded-xl p-4 border border-emerald-500/30 relative overflow-hidden"
+             style="animation-delay:${i * 45}ms;">
+          <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500 rounded-l-xl"></div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white font-mono">#${shortId}</span>
+            <span class="text-xs text-emerald-400 font-mono">${when}</span>
+          </div>
+          <h3 class="font-bold text-white mb-1 text-sm leading-snug">${name}</h3>
+          <p class="text-xs text-slate-400 mb-3">
+            ${currentLang === 'fi' ? 'Arvo' : 'Value'}:
+            <span class="text-emerald-400 font-bold">${price}</span>
+          </p>
+          <button
+            onclick="acceptIndentAsChef('${indent.id}', this)"
+            class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 py-2.5 rounded-lg text-sm font-bold text-white transition-all">
+            ${btnLabel}
+          </button>
+        </div>`;
+    }).join('');
+
+  } catch (err) {
+    console.error('[LEAD Chef] Poll error:', err);
+    if (dot) { dot.className = 'w-2 h-2 rounded-full bg-red-500'; }
+    if (lbl) { lbl.textContent = 'ERR'; lbl.style.color = '#f87171'; }
+    if (feed) feed.innerHTML = `
+      <div style="text-align:center;padding:16px;color:#f87171;font-size:11px;">
+        ⚠ ${currentLang === 'fi' ? 'Yhteysvirhe — yritetään uudelleen…' : 'Connection error — retrying…'}
+      </div>`;
+  }
+}
+
+/* ─── TASK 2: Chef — acceptIndentAsChef ─────────────────── */
+async function acceptIndentAsChef(indentId, btn) {
+  if (!indentId) return;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ ' + (currentLang === 'fi' ? 'Hyväksytään…' : 'Accepting…');
+  }
+
+  try {
+    const db = getSupabase();
+    const { error } = await db
+      .from('indents_table')
+      .update({
+        status:             'Prepping',
+        chef_business_name: 'LEAD Test Kitchen'
+      })
+      .eq('id', indentId);
+
+    if (error) throw error;
+
+    console.log('[LEAD Chef] Accepted indent id:', indentId);
+    alert(currentLang === 'fi'
+      ? '✅ Tilaus hyväksytty! Siirretty valmisteluun.'
+      : '✅ Order Accepted! Moved to Prepping.');
+
+    // Immediately re-poll — accepted order disappears from the feed
+    await fetchPendingIndentsForChef();
+
+    // Notify admin panel via BroadcastChannel
+    try {
+      const bc = new BroadcastChannel('lead-platform-v1');
+      bc.postMessage({ type: 'INDENT_STATUS_CHANGED', id: indentId, status: 'Prepping' });
+      bc.close();
+    } catch(e) {}
+
+  } catch (err) {
+    console.error('[LEAD Chef] Accept error:', err);
+    alert(currentLang === 'fi'
+      ? '❌ Virhe hyväksyttäessä tilausta: ' + err.message
+      : '❌ Failed to accept order: ' + err.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = currentLang === 'fi' ? '✓ Hyväksy tilaus' : '✓ Accept Order';
+    }
+  }
+}
+
+/* ─── Start 3-second poll when page loads ────────────────── */
+/* We wait for DOMContentLoaded so the chef view element exists,
+   then start the interval. The poll only writes to DOM if
+   view-chef is in the document — it's always safe to run. */
+document.addEventListener('DOMContentLoaded', function() {
+  setInterval(fetchPendingIndentsForChef, 3000);
+});
 
 </script>
 </body>

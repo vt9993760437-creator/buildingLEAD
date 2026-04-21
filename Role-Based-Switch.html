@@ -39,6 +39,14 @@
 .progress-bar{height:3px;border-radius:3px;background:#1e293b;overflow:hidden;}
 .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#34d399);transition:width 0.4s ease;}
 *{box-sizing:border-box;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#334155;border-radius:2px;}
+/* ── courier live feed ── */
+@keyframes courCardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.cour-live-card{animation:courCardIn 0.22s ease both;}
+.cour-skeleton{
+  background:#1e293b;border:1px solid #334155;border-radius:12px;
+  padding:14px;animation:chefSkeletonPulse 1.4s ease-in-out infinite;
+}
+
 /* ── chef live feed ── */
 @keyframes chefCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .chef-live-card{animation:chefCardIn 0.22s ease both;}
@@ -377,25 +385,41 @@
   </div>
 
   <!-- ── Courier Dashboard ── -->
-  <div id="view-courier" class="app-view hidden flex-1 p-4 flex flex-col relative overflow-hidden">
-    <div class="absolute inset-0 bg-grid opacity-20"></div>
-    <div class="relative z-10 flex flex-col h-full">
-      <div class="flex justify-between items-center mt-2 mb-8">
+  <div id="view-courier" class="app-view hidden flex-1 flex flex-col relative overflow-hidden">
+    <!-- ambient grid background -->
+    <div class="absolute inset-0 bg-grid opacity-20 pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col h-full p-4">
+
+      <!-- Header row -->
+      <div class="flex justify-between items-center mt-2 mb-1">
         <h2 class="text-2xl font-bold text-white" data-i18n="cour-radar">Radar</h2>
-        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><span class="text-xs font-bold text-emerald-500" data-i18n="cour-online">Online</span></div>
-      </div>
-      <div class="flex-1 flex items-center justify-center relative">
-        <div class="absolute w-32 h-32 bg-emerald-500/10 rounded-full flex items-center justify-center">
-          <div class="w-24 h-24 bg-emerald-500/20 rounded-full animate-ping" style="animation-duration:2s;animation-timing-function:cubic-bezier(0,0,0.2,1);"></div>
-          <div class="w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] z-10"></div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="cour-poll-dot"></span>
+          <span class="text-[9px] font-mono text-emerald-500" id="cour-poll-label">LIVE</span>
         </div>
       </div>
-      <div class="bg-slate-800 rounded-2xl p-5 border border-emerald-500/50 shadow-2xl mt-auto">
-        <p class="text-xs font-bold text-emerald-400 mb-1" data-i18n="cour-bounty">NEW BOUNTY DETECTED</p>
-        <h3 class="text-lg font-bold text-white mb-1">Dom Bakery → Länsimäki</h3>
-        <div class="flex justify-between items-center mb-4"><p class="text-sm text-slate-400" data-i18n="cour-route">2.4 km total route</p><p class="text-xl font-bold text-white">€8.50</p></div>
-        <button class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-sm font-bold text-white" data-i18n="cour-accept">Accept Dispatch</button>
+      <p class="text-xs text-emerald-500 mb-4 font-mono" data-i18n="cour-online">Online</p>
+
+      <!-- ── Ready for Pickup: status = 'Prepping' ── -->
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2 uppercase" data-i18n="cour-pickup-label">Ready for Pickup</p>
+      <div id="courier-incoming-feed" class="space-y-3 mb-5 overflow-y-auto no-scrollbar" style="max-height:52%;">
+        <!-- skeleton shown before first DB response -->
+        <div class="cour-skeleton">
+          <div class="h-3 w-20 bg-slate-700 rounded mb-2"></div>
+          <div class="h-4 w-40 bg-slate-700 rounded mb-3"></div>
+          <div class="h-9 w-full bg-slate-700/50 rounded-lg"></div>
+        </div>
       </div>
+
+      <!-- ── In Transit section ── -->
+      <p class="text-[10px] text-slate-500 font-bold tracking-widest mb-2 uppercase" data-i18n="cour-transit-label">In Transit</p>
+      <div id="courier-transit-feed" class="space-y-3 overflow-y-auto no-scrollbar" style="max-height:36%;">
+        <div style="text-align:center;padding:12px 0;color:#475569;font-size:11px;">
+          — <span data-i18n="cour-transit-empty">No active deliveries</span> —
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -937,6 +961,9 @@ const T = {
     'chef-prepping':  'Prepping',
     'chef-markready': 'Mark Ready for Courier',
     /* courier dashboard */
+    'cour-pickup-label':  'Ready for Pickup',
+    'cour-transit-label': 'In Transit',
+    'cour-transit-empty': 'No active deliveries',
     'cour-radar':     'Radar',
     'cour-online':    'Online',
     'cour-bounty':    'NEW BOUNTY DETECTED',
@@ -1177,6 +1204,9 @@ const T = {
     'chef-prepping':  'Valmistuksessa',
     'chef-markready': 'Merkitse valmiiksi kuriiria varten',
     /* courier dashboard */
+    'cour-pickup-label':  'Valmis noutoon',
+    'cour-transit-label': 'Matkalla',
+    'cour-transit-empty': 'Ei aktiivisia toimituksia',
     'cour-radar':     'Tutka',
     'cour-online':    'Paikalla',
     'cour-bounty':    'UUSI TOIMITUS HAVAITTU',
@@ -1519,6 +1549,9 @@ function switchView(name) {
   if(name === 'support') initChat();
   if(name === 'chef') {
     if(typeof fetchPendingIndentsForChef === 'function') fetchPendingIndentsForChef();
+  }
+  if(name === 'courier') {
+    if(typeof fetchIndentsForCourier === 'function') fetchIndentsForCourier();
   }
 }
 
@@ -2194,12 +2227,221 @@ async function acceptIndentAsChef(indentId, btn) {
   }
 }
 
-/* ─── Start 3-second poll when page loads ────────────────── */
-/* We wait for DOMContentLoaded so the chef view element exists,
-   then start the interval. The poll only writes to DOM if
-   view-chef is in the document — it's always safe to run. */
+/* ═══════════════════════════════════════════════════════════
+   COURIER LIVE PIPELINE — Tasks 1, 2 & 3
+   fetchIndentsForCourier  — polls every 3s for Prepping + In Transit
+   pickupIndentAsCourier   — moves status → 'In Transit'
+   completeDelivery        — moves status → 'Delivered'
+═══════════════════════════════════════════════════════════ */
+
+/* ─── TASK 1: Live polling ───────────────────────────────── */
+async function fetchIndentsForCourier() {
+  const feedPickup  = document.getElementById('courier-incoming-feed');
+  const feedTransit = document.getElementById('courier-transit-feed');
+  const dot  = document.getElementById('cour-poll-dot');
+  const lbl  = document.getElementById('cour-poll-label');
+  if (!feedPickup || !feedTransit) return;
+
+  try {
+    const db = getSupabase();
+
+    // Single query: rows where status is 'Prepping' OR 'In Transit'
+    const { data: indents, error } = await db
+      .from('indents_table')
+      .select('id, item_name, price, chef_business_name, courier_id, status, created_at')
+      .in('status', ['Prepping', 'In Transit'])
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    // Green dot — connected
+    if (dot) { dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse'; }
+    if (lbl) { lbl.textContent = 'LIVE'; lbl.style.color = '#10b981'; }
+
+    const ready    = (indents || []).filter(r => r.status === 'Prepping');
+    const transit  = (indents || []).filter(r => r.status === 'In Transit');
+
+    // ── Render Pickup feed ──────────────────────────────────
+    if (ready.length === 0) {
+      feedPickup.innerHTML = `
+        <div style="text-align:center;padding:18px 0;color:#475569;font-size:11px;">
+          <div style="font-size:20px;margin-bottom:5px;">📡</div>
+          ${currentLang === 'fi' ? 'Ei tilauksia noudettavaksi.' : 'No orders ready for pickup yet.'}
+        </div>`;
+    } else {
+      feedPickup.innerHTML = ready.map((indent, i) => {
+        const price   = indent.price != null ? '€' + Number(indent.price).toFixed(2) : '—';
+        const name    = indent.item_name || (currentLang === 'fi' ? 'Tuntematon tuote' : 'Unknown item');
+        const chef    = indent.chef_business_name || '—';
+        const when    = _relTime(indent.created_at);
+        const shortId = indent.id ? String(indent.id).replace(/-/g,'').slice(-6).toUpperCase() : '——';
+        const btnLbl  = currentLang === 'fi' ? '🛵 Nouda tilaus' : '🛵 Pick Up Order';
+
+        return `
+          <div class="cour-live-card bg-slate-800 rounded-xl p-4 border border-blue-500/30 relative overflow-hidden"
+               style="animation-delay:${i * 45}ms;">
+            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-xl"></div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white font-mono">#${shortId}</span>
+              <span class="text-xs font-mono" style="color:#60a5fa;">${when}</span>
+            </div>
+            <h3 class="font-bold text-white mb-0.5 text-sm leading-snug">${name}</h3>
+            <p class="text-xs text-slate-400 mb-3">
+              ${currentLang === 'fi' ? 'Kokki' : 'Chef'}: <span class="text-slate-300">${chef}</span>
+              &nbsp;·&nbsp;
+              ${currentLang === 'fi' ? 'Arvo' : 'Value'}: <span style="color:#60a5fa;font-weight:700;">${price}</span>
+            </p>
+            <button
+              onclick="pickupIndentAsCourier('${indent.id}', this)"
+              class="w-full py-2.5 rounded-lg text-sm font-bold text-white transition-all active:scale-95"
+              style="background:#2563eb;">
+              ${btnLbl}
+            </button>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Render In Transit feed ──────────────────────────────
+    if (transit.length === 0) {
+      feedTransit.innerHTML = `
+        <div style="text-align:center;padding:12px 0;color:#475569;font-size:11px;">
+          — <span data-i18n="cour-transit-empty">${currentLang === 'fi' ? 'Ei aktiivisia toimituksia' : 'No active deliveries'}</span> —
+        </div>`;
+    } else {
+      feedTransit.innerHTML = transit.map((indent, i) => {
+        const price   = indent.price != null ? '€' + Number(indent.price).toFixed(2) : '—';
+        const name    = indent.item_name || (currentLang === 'fi' ? 'Tuntematon tuote' : 'Unknown item');
+        const when    = _relTime(indent.created_at);
+        const shortId = indent.id ? String(indent.id).replace(/-/g,'').slice(-6).toUpperCase() : '——';
+        const btnLbl  = currentLang === 'fi' ? '✅ Merkitse toimitetuksi' : '✅ Mark as Delivered';
+
+        return `
+          <div class="cour-live-card bg-slate-800 rounded-xl p-4 border border-emerald-500/50 relative overflow-hidden"
+               style="animation-delay:${i * 45}ms;">
+            <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500 rounded-l-xl"></div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-white font-mono">#${shortId}</span>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded font-mono"
+                    style="background:rgba(16,185,129,0.12);color:#34d399;">IN TRANSIT</span>
+            </div>
+            <h3 class="font-bold text-white mb-0.5 text-sm leading-snug">${name}</h3>
+            <p class="text-xs text-slate-400 mb-3">
+              ${currentLang === 'fi' ? 'Arvo' : 'Value'}: <span class="text-emerald-400 font-bold">${price}</span>
+              &nbsp;·&nbsp; ${when}
+            </p>
+            <button
+              onclick="completeDelivery('${indent.id}', this)"
+              class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 py-2.5 rounded-lg text-sm font-bold text-white transition-all">
+              ${btnLbl}
+            </button>
+          </div>`;
+      }).join('');
+    }
+
+  } catch (err) {
+    console.error('[LEAD Courier] Poll error:', err);
+    if (dot) { dot.className = 'w-2 h-2 rounded-full bg-red-500'; }
+    if (lbl) { lbl.textContent = 'ERR'; lbl.style.color = '#f87171'; }
+    const errHtml = `
+      <div style="text-align:center;padding:14px;color:#f87171;font-size:11px;">
+        ⚠ ${currentLang === 'fi' ? 'Yhteysvirhe — yritetään uudelleen…' : 'Connection error — retrying…'}
+      </div>`;
+    if (feedPickup)  feedPickup.innerHTML  = errHtml;
+    if (feedTransit) feedTransit.innerHTML = errHtml;
+  }
+}
+
+/* ─── TASK 2: Pick Up → 'In Transit' ────────────────────── */
+async function pickupIndentAsCourier(indentId, btn) {
+  if (!indentId) return;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ ' + (currentLang === 'fi' ? 'Noudetaan…' : 'Picking up…');
+  }
+
+  try {
+    const db = getSupabase();
+    const { error } = await db
+      .from('indents_table')
+      .update({
+        status:     'In Transit',
+        courier_id: 'Courier Alpha'
+      })
+      .eq('id', indentId);
+
+    if (error) throw error;
+
+    console.log('[LEAD Courier] Picked up indent id:', indentId);
+    alert(currentLang === 'fi'
+      ? '✅ Tilaus noudettu! Tila: Matkalla.'
+      : '✅ Order Picked Up! Status: In Transit.');
+
+    await fetchIndentsForCourier();
+
+    try {
+      const bc = new BroadcastChannel('lead-platform-v1');
+      bc.postMessage({ type: 'INDENT_STATUS_CHANGED', id: indentId, status: 'In Transit' });
+      bc.close();
+    } catch(e) {}
+
+  } catch (err) {
+    console.error('[LEAD Courier] Pickup error:', err);
+    alert(currentLang === 'fi'
+      ? '❌ Virhe noudettaessa tilausta: ' + err.message
+      : '❌ Failed to pick up order: ' + err.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = currentLang === 'fi' ? '🛵 Nouda tilaus' : '🛵 Pick Up Order';
+    }
+  }
+}
+
+/* ─── TASK 3: Complete → 'Delivered' ────────────────────── */
+async function completeDelivery(indentId, btn) {
+  if (!indentId) return;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ ' + (currentLang === 'fi' ? 'Viimeistellään…' : 'Completing…');
+  }
+
+  try {
+    const db = getSupabase();
+    const { error } = await db
+      .from('indents_table')
+      .update({ status: 'Delivered' })
+      .eq('id', indentId);
+
+    if (error) throw error;
+
+    console.log('[LEAD Courier] Delivered indent id:', indentId);
+    alert(currentLang === 'fi'
+      ? '✅ Toimitus valmis!'
+      : '✅ Delivery Complete!');
+
+    await fetchIndentsForCourier();
+
+    try {
+      const bc = new BroadcastChannel('lead-platform-v1');
+      bc.postMessage({ type: 'INDENT_STATUS_CHANGED', id: indentId, status: 'Delivered' });
+      bc.close();
+    } catch(e) {}
+
+  } catch (err) {
+    console.error('[LEAD Courier] Deliver error:', err);
+    alert(currentLang === 'fi'
+      ? '❌ Virhe toimituksen viimeistelyssä: ' + err.message
+      : '❌ Failed to complete delivery: ' + err.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = currentLang === 'fi' ? '✅ Merkitse toimitetuksi' : '✅ Mark as Delivered';
+    }
+  }
+}
+
+/* ─── Start 3-second polls when page loads ───────────────── */
 document.addEventListener('DOMContentLoaded', function() {
   setInterval(fetchPendingIndentsForChef, 3000);
+  setInterval(fetchIndentsForCourier,     3000);
 });
 
 </script>

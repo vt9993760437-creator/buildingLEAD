@@ -738,16 +738,96 @@ strong.g { color: var(--green); font-weight: 700; }
 }
 .btn-admin-red:hover { background:rgba(255,77,109,0.16); }
 
-/* Admin toast */
+/* Admin toast (legacy single-message bar) */
 #adminToast {
   position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px);
   background:var(--panel); border:1px solid var(--green); color:var(--green);
   padding:10px 20px; border-radius:6px; font-size:11px;
-  font-family:'JetBrains Mono',monospace; z-index:9999;
+  font-family:'JetBrains Mono',monospace; z-index:9998;
   transition:transform 0.35s ease, opacity 0.35s; opacity:0;
   box-shadow:0 0 20px var(--green-glow); white-space:nowrap;
 }
 #adminToast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+/* ── Toast notification system ──────────────────────────── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 240px;
+  max-width: 340px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.2);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  line-height: 1.5;
+  color: #e2e8f0;
+  pointer-events: auto;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.28s ease;
+}
+.toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+.toast.hide {
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.25s ease-in, opacity 0.22s ease-in;
+}
+.toast-icon {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.toast-body { flex: 1; }
+.toast-title {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+.toast-msg { color: #94a3b8; font-size: 11px; }
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  margin-top: -1px;
+  transition: color 0.15s;
+}
+.toast-close:hover { color: #e2e8f0; }
+.toast-success { border-left: 3px solid #10b981; }
+.toast-success .toast-title { color: #34d399; }
+.toast-error   { border-left: 3px solid #f43f5e; background: #0f0a0d; }
+.toast-error   .toast-title { color: #fb7185; }
+.toast-error   .toast-msg   { color: #9f7b84; }
+.toast-info    { border-left: 3px solid #38bdf8; }
+.toast-info    .toast-title { color: #7dd3fc; }
+.toast-warning { border-left: 3px solid #f59e0b; }
+.toast-warning .toast-title { color: #fbbf24; }
+
 
 .empty-state { text-align:center; padding:32px 16px; color:var(--muted); font-size:11px; }
 
@@ -2416,13 +2496,18 @@ function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 
-// ── Admin toast ────────────────────────────────────────────
+// ── Admin toast — now delegates to showToast for rich UX ──
 function showAdminToast(msg) {
+  // Legacy single bar (kept for backward compat)
   const t = document.getElementById('adminToast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3500);
+  if (t) {
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+  // Also show via the rich toast system
+  const isError = /error|virhe|failed|fail|✕/i.test(msg);
+  showToast(msg, isError ? 'error' : 'success');
 }
 
 // ── Clear all data ─────────────────────────────────────────
@@ -2430,6 +2515,7 @@ function adminClear() {
   if (!confirm('Clear all LEAD platform data from this browser? This cannot be undone.')) return;
   localStorage.removeItem('lead_users');
   localStorage.removeItem('lead_events');
+  showToast('LEAD platform data cleared', 'warning');
   showAdminToast('✕ Data cleared');
   adminRefresh();
 }
@@ -2620,6 +2706,60 @@ document.addEventListener('DOMContentLoaded', () => {
   window.fetchLiveAdminStats = fetchLiveAdminStats;
 })();
 
+
+/* ── Toast notification system ──────────────────────────── */
+(function() {
+  const DURATION = 3800;
+
+  window.showToast = function(message, type) {
+    type = type || 'success';
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const lines = String(message).split('\n').filter(Boolean);
+    const title  = lines[0] || '';
+    const body   = lines.slice(1).join(' · ') || '';
+
+    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const icon  = icons[type] || '✅';
+
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.innerHTML =
+      '<span class="toast-icon">' + icon + '</span>' +
+      '<div class="toast-body">' +
+        '<div class="toast-title">' + title.replace(/^[✅❌⚠️ℹ️\s]+/, '') + '</div>' +
+        (body ? '<div class="toast-msg">' + body + '</div>' : '') +
+      '</div>' +
+      '<button class="toast-close" aria-label="Dismiss">×</button>';
+
+    container.appendChild(toast);
+
+    toast.querySelector('.toast-close').addEventListener('click', function() {
+      dismissToast(toast);
+    });
+
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { toast.classList.add('show'); });
+    });
+
+    var timer = setTimeout(function() { dismissToast(toast); }, DURATION);
+    toast.addEventListener('mouseenter', function() { clearTimeout(timer); });
+    toast.addEventListener('mouseleave', function() {
+      timer = setTimeout(function() { dismissToast(toast); }, 1500);
+    });
+  };
+
+  function dismissToast(toast) {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    toast.addEventListener('transitionend', function() {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, { once: true });
+  }
+})();
+
 </script>
+<div id="toast-container"></div>
 </body>
 </html>

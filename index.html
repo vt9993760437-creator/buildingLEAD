@@ -750,6 +750,72 @@ strong.g { color: var(--green); font-weight: 700; }
 #adminToast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
 .empty-state { text-align:center; padding:32px 16px; color:var(--muted); font-size:11px; }
+
+/* ── Live Indents Feed ─────────────────────────────────── */
+.indent-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.indent-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  transition: background 0.2s;
+  animation: fade-up 0.25s ease both;
+}
+.indent-card:hover { background: var(--accent-dim); }
+.indent-card.status-awaiting  { border-left-color: var(--amber); }
+.indent-card.status-confirmed { border-left-color: var(--green); }
+.indent-card.status-delivered { border-left-color: var(--muted); opacity: 0.7; }
+.indent-item-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.indent-meta {
+  font-size: 10px;
+  color: var(--dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.indent-price {
+  font-size: 14px;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
+  color: var(--green);
+  text-align: right;
+  white-space: nowrap;
+}
+.indent-status-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-align: right;
+  margin-top: 4px;
+}
+.indent-feed-empty {
+  text-align: center;
+  padding: 28px 16px;
+  color: var(--muted);
+  font-size: 11px;
+}
+[data-theme="light"] .indent-card { background: var(--panel); }
 .empty-state .empty-icon { font-size:24px; margin-bottom:8px; }
 
 </style>
@@ -1438,6 +1504,27 @@ strong.g { color: var(--green); font-weight: 700; }
           </div>
           <div class="event-log" id="eventLog">
             <div class="empty-state"><div class="empty-icon">📡</div>Waiting for events…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Indents Feed — populated from Supabase indents_table -->
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="admin-panel-inner">
+        <div class="admin-panel-hdr">
+          <span class="admin-panel-title">📦 Live Indents Feed</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--muted);" id="feed-last-update">—</span>
+            <span style="font-size:9px;padding:2px 6px;border-radius:3px;background:var(--green-dim);color:var(--green);font-family:'JetBrains Mono',monospace;" id="feed-live-dot">● LIVE</span>
+            <button onclick="window.fetchLiveAdminStats&&window.fetchLiveAdminStats()" class="btn-admin" style="padding:3px 8px;font-size:9px;">↺</button>
+          </div>
+        </div>
+        <div class="indent-feed" id="live-indents-feed">
+          <div class="indent-feed-empty">
+            <div style="font-size:20px;margin-bottom:6px;">📦</div>
+            Waiting for live indents from Supabase…<br>
+            <span style="color:var(--muted);font-size:10px;">Indents appear here when customers place orders in the RBAC Simulator.</span>
           </div>
         </div>
       </div>
@@ -2395,44 +2482,119 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchLiveAdminStats() {
     const elVal    = document.getElementById('stat-live-indents');
     const elStatus = document.getElementById('stat-live-status');
+    const feedDot  = document.getElementById('feed-live-dot');
+    const feedTime = document.getElementById('feed-last-update');
 
     try {
-      // Total indents count
-      const { count: indentCount, error: iErr } = await db
+      // ── 1. Full indent rows (for the feed) + count in one query ──
+      const { data: indents, error: iErr } = await db
         .from('indents_table')
-        .select('*', { count: 'exact', head: true });
+        .select('id, item_name, price, status, chef_business_name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (iErr) throw iErr;
 
-      if (elVal)    elVal.textContent    = indentCount ?? 0;
+      const indentCount = indents ? indents.length : 0;
+
+      // Update stat card
+      if (elVal)    elVal.textContent    = indentCount;
       if (elStatus) { elStatus.textContent = 'live ●'; elStatus.style.color = 'var(--green)'; }
 
-      // Users by role from users_table (bonus — doesn't override localStorage layer)
+      // Update feed timestamp
+      const now = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      if (feedTime) feedTime.textContent = 'Updated ' + now;
+      if (feedDot)  { feedDot.textContent = '● LIVE'; feedDot.style.background = 'var(--green-dim)'; feedDot.style.color = 'var(--green)'; }
+
+      // ── 2. Render the indent feed ──────────────────────────────
+      renderIndentFeed(indents || []);
+
+      // ── 3. Users by role from users_table ─────────────────────
       const { data: dbUsers, error: uErr } = await db
         .from('users_table')
         .select('role');
 
       if (!uErr && dbUsers && dbUsers.length > 0) {
-        // Merge DB user counts into stat cards if DB has data
-        const dbConsumers = dbUsers.filter(u => u.role === 'consumer').length;
-        const dbChefs     = dbUsers.filter(u => u.role === 'chef').length;
-        const dbCouriers  = dbUsers.filter(u => u.role === 'courier').length;
-        const dbTotal     = dbUsers.length;
-
-        // Only override if DB actually has records (don't blank out seed data)
         const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-        setEl('stat-total',     dbTotal);
-        setEl('stat-consumers', dbConsumers);
-        setEl('stat-chefs',     dbChefs);
-        setEl('stat-couriers',  dbCouriers);
+        setEl('stat-total',     dbUsers.length);
+        setEl('stat-consumers', dbUsers.filter(u => u.role === 'consumer').length);
+        setEl('stat-chefs',     dbUsers.filter(u => u.role === 'chef').length);
+        setEl('stat-couriers',  dbUsers.filter(u => u.role === 'courier').length);
       }
 
-      console.log('[LEAD Admin] Live stats fetched — indents:', indentCount);
+      console.log('[LEAD Admin] Feed refreshed —', indentCount, 'indents');
 
     } catch (err) {
       console.error('[LEAD Admin] Supabase fetch error:', err);
       if (elStatus) { elStatus.textContent = 'error ✕'; elStatus.style.color = 'var(--red)'; }
+      if (feedDot)  { feedDot.textContent = '✕ ERROR'; feedDot.style.background = 'rgba(255,77,109,0.1)'; feedDot.style.color = 'var(--red)'; }
     }
+  }
+
+  /* ── renderIndentFeed ──────────────────────────────────── */
+  function renderIndentFeed(indents) {
+    const feed = document.getElementById('live-indents-feed');
+    if (!feed) return;
+
+    if (!indents || indents.length === 0) {
+      feed.innerHTML = `
+        <div class="indent-feed-empty">
+          <div style="font-size:20px;margin-bottom:6px;">📦</div>
+          No indents in the database yet.<br>
+          <span style="color:var(--muted);font-size:10px;">Tap "Add to Indent" in the RBAC Simulator to send the first order.</span>
+        </div>`;
+      return;
+    }
+
+    // Status → CSS class + badge colour
+    function statusStyle(status) {
+      const s = (status || '').toLowerCase();
+      if (s.includes('awaiting') || s.includes('pending'))
+        return { cls: 'status-awaiting',  bg: 'var(--amber-dim)', color: 'var(--amber)' };
+      if (s.includes('confirm') || s.includes('prep') || s.includes('accepted'))
+        return { cls: 'status-confirmed', bg: 'var(--green-dim)', color: 'var(--green)' };
+      if (s.includes('deliver') || s.includes('complete') || s.includes('done'))
+        return { cls: 'status-delivered', bg: 'var(--border)',    color: 'var(--muted)' };
+      return { cls: '', bg: 'var(--border)', color: 'var(--dim)' };
+    }
+
+    // Relative time helper
+    function relTime(iso) {
+      if (!iso) return '—';
+      const diff = Date.now() - new Date(iso);
+      const m = Math.floor(diff / 60000);
+      if (m < 1)  return 'just now';
+      if (m < 60) return m + 'm ago';
+      const h = Math.floor(m / 60);
+      if (h < 24) return h + 'h ago';
+      return Math.floor(h / 24) + 'd ago';
+    }
+
+    feed.innerHTML = indents.map((indent, i) => {
+      const { cls, bg, color } = statusStyle(indent.status);
+      const price    = indent.price != null ? '€' + Number(indent.price).toFixed(2) : '—';
+      const chef     = indent.chef_business_name || '—';
+      const itemName = indent.item_name || 'Unknown item';
+      const idShort  = indent.id ? String(indent.id).slice(0, 8).toUpperCase() : '—';
+      const when     = relTime(indent.created_at);
+      const status   = indent.status || 'Unknown';
+
+      return `
+        <div class="indent-card ${cls}" style="animation-delay:${i * 30}ms;">
+          <div>
+            <div class="indent-item-name">${itemName}</div>
+            <div class="indent-meta">
+              Chef: ${chef} &nbsp;·&nbsp; #${idShort} &nbsp;·&nbsp; ${when}
+            </div>
+          </div>
+          <div>
+            <div class="indent-price">${price}</div>
+            <div class="indent-status-badge" style="background:${bg};color:${color};">
+              ${status}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   // Run immediately then every 3 seconds

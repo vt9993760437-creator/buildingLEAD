@@ -753,6 +753,7 @@ strong.g { color: var(--green); font-weight: 700; }
 .empty-state .empty-icon { font-size:24px; margin-bottom:8px; }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body class="grid-bg">
@@ -1404,6 +1405,11 @@ strong.g { color: var(--green); font-weight: 700; }
       <div class="admin-stat-card" style="border-color:var(--green);">
         <div style="font-size:10px;color:var(--green);">KYC Approved</div>
         <div class="admin-stat-val glow-green" id="stat-approved">0</div>
+      </div>
+      <div class="admin-stat-card" style="border-color:rgba(0,229,255,0.3);">
+        <div style="font-size:10px;color:var(--dim);">Live Indents (DB)</div>
+        <div class="admin-stat-val glow-accent" id="stat-live-indents">—</div>
+        <div style="font-size:8px;color:var(--muted);margin-top:2px;" id="stat-live-status">connecting…</div>
       </div>
     </div>
 
@@ -2363,6 +2369,94 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lbl) lbl.textContent = 'RBAC Simulator: ' + users.length + ' users in storage';
   }
 });
+
+
+/* ═══════════════════════════════════════════════════════
+   SUPABASE LIVE INTEGRATION — Admin Panel (index.html)
+   Reads: indents_table (count of all orders)
+          users_table   (count by role)
+   Writes: KYC updates (via ADMIN_DB.updateKYC → localStorage
+           for now; ready to swap to Supabase later)
+═══════════════════════════════════════════════════════ */
+(function initSupabaseAdmin() {
+  const SUPA_URL = 'https://ycvirrqvudvbwrvvwxof.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljdmlycnF2dWR2YndydnZ3eG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MjU0NzksImV4cCI6MjA5MjMwMTQ3OX0.3Dk9IGpHUIBA8fpFg9WpFViKzfADt1D7NMBYSfbnWps';
+
+  // Guard: only init if CDN loaded
+  if (!window.supabase) {
+    console.warn('[LEAD Admin] Supabase CDN not loaded yet — retrying in 500ms');
+    setTimeout(initSupabaseAdmin, 500);
+    return;
+  }
+
+  const db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
+  /* ── fetchLiveAdminStats ───────────────────────────────── */
+  async function fetchLiveAdminStats() {
+    const elVal    = document.getElementById('stat-live-indents');
+    const elStatus = document.getElementById('stat-live-status');
+
+    try {
+      // Total indents count
+      const { count: indentCount, error: iErr } = await db
+        .from('indents_table')
+        .select('*', { count: 'exact', head: true });
+
+      if (iErr) throw iErr;
+
+      if (elVal)    elVal.textContent    = indentCount ?? 0;
+      if (elStatus) { elStatus.textContent = 'live ●'; elStatus.style.color = 'var(--green)'; }
+
+      // Users by role from users_table (bonus — doesn't override localStorage layer)
+      const { data: dbUsers, error: uErr } = await db
+        .from('users_table')
+        .select('role');
+
+      if (!uErr && dbUsers && dbUsers.length > 0) {
+        // Merge DB user counts into stat cards if DB has data
+        const dbConsumers = dbUsers.filter(u => u.role === 'consumer').length;
+        const dbChefs     = dbUsers.filter(u => u.role === 'chef').length;
+        const dbCouriers  = dbUsers.filter(u => u.role === 'courier').length;
+        const dbTotal     = dbUsers.length;
+
+        // Only override if DB actually has records (don't blank out seed data)
+        const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        setEl('stat-total',     dbTotal);
+        setEl('stat-consumers', dbConsumers);
+        setEl('stat-chefs',     dbChefs);
+        setEl('stat-couriers',  dbCouriers);
+      }
+
+      console.log('[LEAD Admin] Live stats fetched — indents:', indentCount);
+
+    } catch (err) {
+      console.error('[LEAD Admin] Supabase fetch error:', err);
+      if (elStatus) { elStatus.textContent = 'error ✕'; elStatus.style.color = 'var(--red)'; }
+    }
+  }
+
+  // Run immediately then every 3 seconds
+  fetchLiveAdminStats();
+  setInterval(fetchLiveAdminStats, 3000);
+
+  // Also listen for BroadcastChannel indent events from Role-Based-Switch
+  try {
+    const bc = new BroadcastChannel('lead-platform-v1');
+    const _origHandler = bc.onmessage;
+    bc.onmessage = function(e) {
+      if (e.data && e.data.type === 'LIVE_INDENT_CREATED') {
+        // Trigger an immediate refresh when a new indent comes in from RBS
+        fetchLiveAdminStats();
+        showAdminToast('🟢 Live indent received: ' + e.data.item);
+      }
+      // pass through to any existing handler
+      if (typeof _origHandler === 'function') _origHandler.call(bc, e);
+    };
+  } catch(e) {}
+
+  // Expose for manual refresh button
+  window.fetchLiveAdminStats = fetchLiveAdminStats;
+})();
 
 </script>
 </body>

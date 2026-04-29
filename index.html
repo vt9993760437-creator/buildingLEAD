@@ -1044,11 +1044,344 @@ strong.g { color: var(--green); font-weight: 700; }
 [data-theme="light"] .indent-card { background: var(--panel); }
 .empty-state .empty-icon { font-size:24px; margin-bottom:8px; }
 
+
+/* ═══════════════════════════════════════════════════════
+   LEAD ADMIN AUTH GATE
+   Fullscreen lock screen, blurs the app behind it.
+   Removed by JS after successful login.
+═══════════════════════════════════════════════════════ */
+#auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 16, 0.96);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  padding: 24px;
+  transition: opacity 0.45s ease;
+}
+#auth-gate.unlocking {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(10, 16, 30, 0.90);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  border-radius: 18px;
+  padding: 40px 36px 36px;
+  box-shadow:
+    0 0 0 1px rgba(0,229,255,0.06),
+    0 32px 80px rgba(0,0,0,0.70),
+    0 0 60px rgba(0,229,255,0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient top-glow */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 120px;
+  background: radial-gradient(ellipse, rgba(0,229,255,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* LEAD logo mark */
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.auth-logo-mark {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+}
+.auth-logo-mark svg {
+  width: 20px; height: 20px;
+  stroke: #00e5ff; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.auth-logo-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: #f1f5f9;
+  letter-spacing: 0.04em;
+}
+.auth-logo-text span { color: #00e5ff; }
+
+.auth-heading {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin-bottom: 4px;
+}
+.auth-sub {
+  font-size: 12px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+  margin-bottom: 30px;
+}
+
+/* Input rows */
+.auth-field {
+  margin-bottom: 16px;
+}
+.auth-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 7px;
+}
+.auth-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.auth-input-icon {
+  position: absolute;
+  left: 13px;
+  width: 16px; height: 16px;
+  color: #334155;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+.auth-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 12px 14px 12px 40px;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #e2e8f0;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.auth-input::placeholder { color: #1e293b; }
+.auth-input:focus {
+  border-color: rgba(0,229,255,0.40);
+  background: rgba(0,229,255,0.03);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.08), 0 0 16px rgba(0,229,255,0.06);
+}
+.auth-input:focus + .auth-input-icon,
+.auth-input-wrap:focus-within .auth-input-icon { color: #00e5ff; }
+
+/* Show/hide password toggle */
+.auth-eye {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #334155;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+.auth-eye:hover { color: #64748b; }
+
+/* Error message */
+.auth-error {
+  font-size: 11px;
+  color: #fb7185;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(244,63,94,0.08);
+  border: 1px solid rgba(244,63,94,0.18);
+  border-radius: 7px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  display: none;
+  align-items: center;
+  gap: 7px;
+}
+.auth-error.visible { display: flex; }
+
+/* Submit button */
+.auth-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0891b2 0%, #00e5ff 100%);
+  color: #020610;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 0 20px rgba(0,229,255,0.25);
+  margin-top: 4px;
+}
+.auth-btn:hover  { opacity: 0.92; transform: translateY(-1px); }
+.auth-btn:active { transform: translateY(0); }
+.auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-btn-inner {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+/* Shake on wrong password */
+@keyframes authShake {
+  0%,100% { transform: translateX(0); }
+  15%      { transform: translateX(-8px) rotate(-1deg); }
+  30%      { transform: translateX(8px) rotate(1deg); }
+  45%      { transform: translateX(-6px); }
+  60%      { transform: translateX(6px); }
+  75%      { transform: translateX(-3px); }
+  90%      { transform: translateX(3px); }
+}
+.auth-card.shake { animation: authShake 0.5s ease; }
+
+/* Loading spinner */
+@keyframes authSpin { to { transform: rotate(360deg); } }
+.auth-spinner {
+  width: 15px; height: 15px;
+  border: 2px solid rgba(2,6,16,0.3);
+  border-top-color: #020610;
+  border-radius: 50%;
+  animation: authSpin 0.6s linear infinite;
+  display: none;
+}
+.auth-btn.loading .auth-spinner { display: block; }
+.auth-btn.loading .auth-btn-text { display: none; }
+
+/* Footer note */
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 10px;
+  color: #1e293b;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+}
+.auth-footer strong { color: #334155; }
+
+/* Attempt counter badge */
+.auth-attempts {
+  position: absolute;
+  top: 16px; right: 16px;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #334155;
+  letter-spacing: 0.06em;
+}
+/* Prevent background scroll while auth gate is active */
+body.auth-locked { overflow: hidden; height: 100%; }
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body class="grid-bg">
+
+<!-- ═══════════════════════════════════════════════════
+     LEAD ADMIN AUTH GATE
+     Password stored as SHA-256 hash — see deployment notes
+     for credentials. Do not commit plaintext passwords.
+═══════════════════════════════════════════════════ -->
+<div id="auth-gate">
+  <div class="auth-card" id="auth-card">
+    <div class="auth-attempts" id="auth-attempts"></div>
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="auth-logo-mark">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="auth-logo-text">LEAD <span>Admin</span></div>
+    </div>
+
+    <div class="auth-heading">Restricted Access</div>
+    <div class="auth-sub">PHASE 0 · STAGING · AUTHORISED PERSONNEL ONLY</div>
+
+    <!-- Error -->
+    <div class="auth-error" id="auth-error">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      <span id="auth-error-msg">Invalid credentials</span>
+    </div>
+
+    <!-- Username -->
+    <div class="auth-field">
+      <label class="auth-label" for="auth-username">Admin ID</label>
+      <div class="auth-input-wrap">
+        <input id="auth-username" class="auth-input" type="text"
+               placeholder="Enter admin ID" autocomplete="username" spellcheck="false"/>
+        <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="auth-field">
+      <label class="auth-label" for="auth-password">Password</label>
+      <div class="auth-input-wrap">
+        <input id="auth-password" class="auth-input" type="password"
+               placeholder="Enter password" autocomplete="current-password"/>
+        <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <button class="auth-eye" id="auth-eye-btn" type="button" tabindex="-1"
+                aria-label="Toggle password visibility" onclick="toggleAuthEye()">
+          <svg id="auth-eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button class="auth-btn" id="auth-submit-btn" onclick="attemptLogin()">
+      <div class="auth-btn-inner">
+        <div class="auth-spinner"></div>
+        <span class="auth-btn-text">Authenticate →</span>
+      </div>
+    </button>
+
+    <div class="auth-footer">
+      Protected by LEAD Platform Security ·
+      <strong>Phase 0 Staging</strong>
+    </div>
+  </div>
+</div>
+
 
 <!-- ═══════════════════════════════════════════════════════════
      STICKY CONTROLS BAR
@@ -2958,6 +3291,179 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+})();
+
+
+/* ═══════════════════════════════════════════════════════
+   LEAD ADMIN AUTH GATE — JS
+   Uses Web Crypto SHA-256 (built-in, no library needed).
+   Plaintext password is NEVER stored anywhere in this file.
+   Session stored in sessionStorage — clears on tab close.
+═══════════════════════════════════════════════════════ */
+(function() {
+  var STORED_ID   = 'lead-admin';
+  var STORED_HASH = 'c88b1c54f0a4ec13f3d636edf1bc354e2c3126c1af51ab4a0fcdb50517ed490a';
+  var SESSION_KEY = 'lead_admin_authed_v1';
+  var MAX_TRIES   = 5;
+  var LOCKOUT_MS  = 5 * 60 * 1000; // 5 minutes
+  var tries       = 0;
+  var locked      = false;
+
+  /* ── Check existing session on load ── */
+  (function checkSession() {
+    var token = sessionStorage.getItem(SESSION_KEY);
+    if (token === 'granted') {
+      removeGate();
+    } else {
+      document.body.classList.add('auth-locked');
+      var gate = document.getElementById('auth-gate');
+      if (gate) {
+        var u = document.getElementById('auth-username');
+        if (u) setTimeout(function() { u.focus(); }, 120);
+      }
+    }
+  })();
+
+  /* ── SHA-256 via SubtleCrypto ── */
+  async function sha256(str) {
+    var buf = new TextEncoder().encode(str);
+    var hashBuf = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hashBuf))
+      .map(function(b) { return b.toString(16).padStart(2, '0'); })
+      .join('');
+  }
+
+  /* ── Main login handler ── */
+  window.attemptLogin = async function() {
+    if (locked) return;
+
+    var usernameEl = document.getElementById('auth-username');
+    var passwordEl = document.getElementById('auth-password');
+    var btn        = document.getElementById('auth-submit-btn');
+    var card       = document.getElementById('auth-card');
+    var errBox     = document.getElementById('auth-error');
+    var errMsg     = document.getElementById('auth-error-msg');
+    var attemptsEl = document.getElementById('auth-attempts');
+
+    var username   = (usernameEl.value || '').trim();
+    var password   = (passwordEl.value || '');
+
+    if (!username || !password) {
+      showAuthError('Both fields are required.', errBox, errMsg, card);
+      return;
+    }
+
+    // Show loading state
+    btn.classList.add('loading');
+    btn.disabled = true;
+    errBox.classList.remove('visible');
+
+    try {
+      var hash = await sha256(password);
+      var idMatch   = username === STORED_ID;
+      var passMatch = hash === STORED_HASH;
+
+      if (idMatch && passMatch) {
+        // ── SUCCESS ──
+        sessionStorage.setItem(SESSION_KEY, 'granted');
+        btn.classList.remove('loading');
+        // Brief success flash then remove gate
+        btn.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+        btn.querySelector('.auth-btn-text').textContent = '✓ Access Granted';
+        btn.style.boxShadow = '0 0 30px rgba(16,185,129,0.4)';
+        setTimeout(function() {
+          var gate = document.getElementById('auth-gate');
+          if (gate) gate.classList.add('unlocking');
+          setTimeout(removeGate, 480);
+        }, 600);
+
+      } else {
+        // ── FAILURE ──
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        tries++;
+        var remaining = MAX_TRIES - tries;
+
+        if (tries >= MAX_TRIES) {
+          // Lockout
+          locked = true;
+          usernameEl.disabled = true;
+          passwordEl.disabled = true;
+          btn.disabled = true;
+          var unlockAt = Date.now() + LOCKOUT_MS;
+          showAuthError('Too many attempts. Locked for 5 minutes.', errBox, errMsg, card);
+          if (attemptsEl) attemptsEl.textContent = 'LOCKED';
+          // Countdown timer
+          var lockInterval = setInterval(function() {
+            var left = Math.ceil((unlockAt - Date.now()) / 1000);
+            if (attemptsEl) attemptsEl.textContent = 'LOCKED ' + left + 's';
+            if (left <= 0) {
+              clearInterval(lockInterval);
+              locked = false; tries = 0;
+              usernameEl.disabled = false;
+              passwordEl.disabled = false;
+              btn.disabled = false;
+              errBox.classList.remove('visible');
+              if (attemptsEl) attemptsEl.textContent = '';
+              passwordEl.value = '';
+              usernameEl.focus();
+            }
+          }, 1000);
+        } else {
+          var msg = remaining === 1
+            ? 'Invalid credentials. 1 attempt remaining.'
+            : 'Invalid credentials. ' + remaining + ' attempts remaining.';
+          showAuthError(msg, errBox, errMsg, card);
+          if (attemptsEl) attemptsEl.textContent = tries + '/' + MAX_TRIES + ' attempts';
+          passwordEl.value = '';
+          passwordEl.focus();
+        }
+      }
+    } catch (err) {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      showAuthError('Crypto error: ' + err.message, errBox, errMsg, card);
+    }
+  };
+
+  function showAuthError(msg, errBox, errMsg, card) {
+    if (errMsg) errMsg.textContent = msg;
+    if (errBox) errBox.classList.add('visible');
+    if (card) {
+      card.classList.remove('shake');
+      void card.offsetWidth; // reflow to restart animation
+      card.classList.add('shake');
+    }
+  }
+
+  function removeGate() {
+    document.body.classList.remove('auth-locked');
+    var gate = document.getElementById('auth-gate');
+    if (gate && gate.parentNode) gate.parentNode.removeChild(gate);
+  }
+
+  /* ── Enter key submits form ── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      var gate = document.getElementById('auth-gate');
+      if (gate) window.attemptLogin();
+    }
+  });
+
+  /* ── Show/hide password toggle ── */
+  window.toggleAuthEye = function() {
+    var pw   = document.getElementById('auth-password');
+    var icon = document.getElementById('auth-eye-icon');
+    if (!pw) return;
+    var show = pw.type === 'password';
+    pw.type  = show ? 'text' : 'password';
+    if (icon) {
+      icon.innerHTML = show
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  };
+
 })();
 
 </script>

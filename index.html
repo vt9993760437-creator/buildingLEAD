@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LEAD // Phase 0 — Staging Environment</title>
+<title>LEAD Command</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -1046,7 +1046,7 @@ strong.g { color: var(--green); font-weight: 700; }
 
 
 /* ═══════════════════════════════════════════════════════
-   LEAD ADMIN AUTH GATE
+   LEAD COMMAND AUTH GATE
    Fullscreen lock screen, blurs the app behind it.
    Removed by JS after successful login.
 ═══════════════════════════════════════════════════════ */
@@ -1297,7 +1297,7 @@ body.auth-locked { overflow: hidden; height: 100%; }
 <body class="grid-bg">
 
 <!-- ═══════════════════════════════════════════════════
-     LEAD ADMIN AUTH GATE
+     LEAD COMMAND AUTH GATE
      Password stored as SHA-256 hash — see deployment notes
      for credentials. Do not commit plaintext passwords.
 ═══════════════════════════════════════════════════ -->
@@ -1314,11 +1314,11 @@ body.auth-locked { overflow: hidden; height: 100%; }
           <path d="M2 12l10 5 10-5"/>
         </svg>
       </div>
-      <div class="auth-logo-text">LEAD <span>Admin</span></div>
+      <div class="auth-logo-text">LEAD <span>Command</span></div>
     </div>
 
     <div class="auth-heading">Restricted Access</div>
-    <div class="auth-sub">PHASE 0 · STAGING · AUTHORISED PERSONNEL ONLY</div>
+    <div class="auth-sub">LEAD COMMAND · PHASE 0 · AUTHORISED PERSONNEL ONLY</div>
 
     <!-- Error -->
     <div class="auth-error" id="auth-error">
@@ -1333,10 +1333,10 @@ body.auth-locked { overflow: hidden; height: 100%; }
 
     <!-- Username -->
     <div class="auth-field">
-      <label class="auth-label" for="auth-username">Admin ID</label>
+      <label class="auth-label" for="auth-username">Command ID</label>
       <div class="auth-input-wrap">
         <input id="auth-username" class="auth-input" type="text"
-               placeholder="Enter admin ID" autocomplete="username" spellcheck="false"/>
+               placeholder="Enter command ID" autocomplete="username" spellcheck="false"/>
         <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -1371,7 +1371,7 @@ body.auth-locked { overflow: hidden; height: 100%; }
     <button class="auth-btn" id="auth-submit-btn" onclick="attemptLogin()">
       <div class="auth-btn-inner">
         <div class="auth-spinner"></div>
-        <span class="auth-btn-text">Authenticate →</span>
+        <span class="auth-btn-text">Enter Command →</span>
       </div>
     </button>
 

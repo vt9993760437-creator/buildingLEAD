@@ -1999,6 +1999,7 @@ body.auth-locked { overflow: hidden; height: 100%; }
         <a href="Role-Based-Switch.html" target="_blank" class="btn-admin" style="text-decoration:none;">
           ↗ Open RBAC Simulator
         </a>
+        <button onclick="commandLogout()" style="background:rgba(255,77,109,0.10);border:1px solid rgba(255,77,109,0.25);color:#fb7185;padding:5px 12px;border-radius:5px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,77,109,0.20)'" onmouseout="this.style.background='rgba(255,77,109,0.10)'">⏏ Log Out</button>
         <button onclick="adminRefresh()" class="btn-admin">↺ Refresh</button>
         <button onclick="adminSeed()" class="btn-admin" style="opacity:0.7;" title="Seed demo data">⚡ Seed Demo</button>
         <button onclick="adminClear()" class="btn-admin btn-admin-red">✕ Clear Data</button>
@@ -3298,7 +3299,7 @@ document.addEventListener('DOMContentLoaded', () => {
    LEAD ADMIN AUTH GATE — JS
    Uses Web Crypto SHA-256 (built-in, no library needed).
    Plaintext password is NEVER stored anywhere in this file.
-   Session stored in sessionStorage — clears on tab close.
+   Session stored in localStorage — persists across tabs until logout.
 ═══════════════════════════════════════════════════════ */
 (function() {
   var STORED_ID   = 'lead-admin';
@@ -3311,7 +3312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── Check existing session on load ── */
   (function checkSession() {
-    var token = sessionStorage.getItem(SESSION_KEY);
+    var token = localStorage.getItem(SESSION_KEY);
     if (token === 'granted') {
       removeGate();
     } else {
@@ -3365,7 +3366,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (idMatch && passMatch) {
         // ── SUCCESS ──
-        sessionStorage.setItem(SESSION_KEY, 'granted');
+        localStorage.setItem(SESSION_KEY, 'granted');
         btn.classList.remove('loading');
         // Brief success flash then remove gate
         btn.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
@@ -3462,6 +3463,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
         : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
     }
+  };
+
+  /* ── Logout — clear token and reload to show gate ── */
+  window.commandLogout = function() {
+    localStorage.removeItem(SESSION_KEY);
+    location.reload();
   };
 
 })();
